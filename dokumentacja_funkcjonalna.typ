@@ -9,7 +9,24 @@
   size: 11pt,
 )
 
-#set heading(numbering: "1.1")
+#set heading(
+  numbering: "1.1",
+)
+
+#show heading.where(level: 1): it => {
+  pagebreak(weak: true)
+  v(0.2cm)
+  it
+  v(0.15cm)
+}
+
+#show heading.where(level: 2): it => {
+  v(0.15cm)
+  it
+  v(0.1cm)
+}
+
+#set par(justify: true, leading: 0.65em)
 
 #align(center)[
   #v(3cm)
@@ -101,11 +118,13 @@ gdzie:
   - Dostępne wartości: `text`, `binary`
   - Domyślnie: `text`
 
-- `-i <iteracje>` lub `--iterations <iteracje>` - liczba iteracji dla algorytmów iteracyjnych (np. Fruchterman-Reingold)
+- `-i <iteracje>` lub `--iterations <iteracje>` - liczba iteracji dla algorytmu Fruchterman-Reingold
   - Wartość: liczba całkowita dodatnia
   - Domyślnie: `1000`
 
-// tu pewnie temperaatura
+- `-t <temperatura>` lub `--temperature <temperatura>` - wartość początkowej temperatury dla algorytmu Fruchterman-Reingold
+  - Wartość: liczba zmiennoprzecinkowa dodatnia
+  - Domyślnie: `10.0`
 
 - `-h` lub `--help` - wyświetla pomoc i dostępne opcje
 
@@ -187,8 +206,6 @@ Przykład pliku wyjściowego:
 
 == Format pliku wyjściowego binarnego
 
-// to do zastanowienia
-
 Plik wyjściowy w formacie binarnym zawiera te same dane co format tekstowy, ale zapisane w reprezentacji binarnej dla efektywniejszego przechowywania i szybszego wczytywania.
 
 Struktura pliku binarnego:
@@ -203,34 +220,57 @@ Struktura pliku binarnego:
 
 Wszystkie wartości zapisane są w kolejności big-endian.
 
-= Ograniczenia
+= Ograniczenia i wymagania
 
-// ograniczenia do zmiany pewnie 
+== Wymagania systemowe
 
-== Ograniczenia techniczne
+- System operacyjny: Linux, macOS, Unix (Windows poprzez WSL/MinGW/Cygwin)
+- Kompilator: zgodny z C99 lub nowszym (np. GCC 4.8+, Clang 3.5+)
+- Narzędzie budowania: GNU Make
+- Dostępna pamięć RAM: zależna od rozmiaru grafu (patrz niżej)
 
-- Maksymalna liczba wierzchołków: 10 000
-- Maksymalna liczba krawędzi: 50 000
-- Identyfikatory wierzchołków: liczby całkowite dodatnie (1-2147483647)
+== Ograniczenia formatu danych
+
+- Identyfikatory wierzchołków: liczby całkowite dodatnie
 - Długość nazw krawędzi: maksymalnie 64 znaki
-- Maksymalna długość linii w pliku: 1024 znaki
+- Maksymalna długość linii w pliku wejściowym: 256 znaków
+- Graf musi być spójny
+- Minimalna liczba wierzchołków: 3
+- Minimalna liczba krawędzi: 2
 
-== Ograniczenia algorytmiczne
+== Wymagania dla algorytmów
 
-- Algorytm Tutte wymaga grafu planarnego i 3-spójnego
-- Nie obsługiwane są multigraf ani pętle własne
-- Algorytm Fruchterman-Reingold: złożoność O(n² x iteracje) - dla grafów > 1000 węzłów zalecane mniejsze liczby iteracji
-- Algorytm Tutte: złożoność O(n³)
+*Algorytm Fruchterman-Reingold:*
+- Złożoność obliczeniowa: O(V² x I), gdzie V = liczba wierzchołków, I = liczba iteracji
+- Działa dla dowolnych grafów spójnych
+- Nie są obsługiwane pętle własne (krawędzie łączące węzeł z samym sobą)
 
-== Ograniczenia systemowe
+*Algorytm Tutte:*
+- Złożoność obliczeniowa: O(V³) dla rozwiązania układu równań liniowych
+- Wymaga grafu planarnego
+- Wymaga grafu 3-spójnego dla gwarancji braku przecięć krawędzi
+- Nie są obsługiwane pętle własne
 
-- Wymagany system UNIX/Linux/macOS (Windows wymaga MinGW/Cygwin)
-- Wymagany kompilator zgodny ze standardem C99 lub nowszym
-- Program wyznacza tylko współrzędne - wizualizacja wymaga dodatkowego narzędzia
+*Ograniczenia wspólne:*
+- Nie są obsługiwane multigrafy (wiele krawędzi między tymi samymi parami węzłów)
+
+== Wydajność w zależności od zasobów
+
+Zużycie pamięci RAM jest proporcjonalne do rozmiaru grafu:
+- Przechowywanie struktury grafu: około V × (V + E) × 8 bajtów
+- Dla grafu 100 wierzchołków, 200 krawędzi: około 1 MB RAM
+- Dla grafu 500 wierzchołków, 1000 krawędzi: około 10 MB RAM  
+- Dla grafu 1000 wierzchołków, 5000 krawędzi: około 50 MB RAM
+- Dla grafu 5000 wierzchołków, 20000 krawędzi: około 1 GB RAM
+
+Czas obliczeń zależy od procesora i rozmiaru grafu:
+- Algorytm Fruchterman-Reingold jest O(V² × I) - dla dużych grafów należy zmniejszyć liczbę iteracji
+- Algorytm Tutte jest O(V³) - dla grafów powyżej 1000 węzłów czas obliczeń może być znaczący
+- Sugerowane liczby iteracji dla F-R: 1000 dla grafów < 500 węzłów, 200-500 dla 500-2000 węzłów, 50-200 dla większych
+
+Program nie narzuca sztywnych limitów na rozmiar grafu - praktyczne ograniczenia wynikają z dostępnej pamięci RAM i akceptowalnego czasu obliczeń dla danego sprzętu.
 
 = Opis algorytmów
-
-// to do zostanowia 
 
 == Algorytm Fruchterman-Reingold
 
@@ -317,7 +357,6 @@ Program zwraca następujące kody wyjścia:
 - `3` - błąd w formacie danych wejściowych
 - `4` - błąd algorytmu (brak zbieżności, nieprawidłowe dane)
 - `5` - błąd alokacji pamięci
-- `99` - nieznany błąd wewnętrzny
 
 = Przykłady użycia
 
