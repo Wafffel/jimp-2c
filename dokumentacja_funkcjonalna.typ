@@ -35,3 +35,53 @@
 #pagebreak()
 
 #outline()
+
+#pagebreak()
+
+= Wstęp
+
+== Cel projektu
+
+== Dostępne funkcjonalności
+
+= Instrukcja użytkowania
+
+== Instalacja i kompilacja
+
+== Sposoób uruchamiania
+
+= Parametry i opcje uruchamiania
+
+== Obowiązkowe argumenty
+
+== Opcjonalne argumenty
+
+== Przykłady wywołania
+
+= Format danych
+
+== Format pliku wejściowego
+
+== Format pliku wyjściowgo tekstowego
+
+== Format pliku wyjściowego binarnego
+
+= Opis algorytmów
+
+== Algorytm Fruchterman-Reingold
+
+== Algorytm Tutte embeddings
+
+= Obsługa błędów 
+
+== Komunikaty o błędach 
+
+== Zwracane kody powrotu programu
+
+= Przykłady użycia
+
+== Przykład 1:
+
+== Przykład 2:
+
+== Przykład 3:
