@@ -78,7 +78,7 @@ Program oferuje następujące funkcjonalności:
 
 == Instalacja i kompilacja
 
-Program wymaga kompilatora C (np. GCC), narzędzia make oraz standardowej biblioteki C. 
+Program wymaga kompilatora C (np. GCC), narzędzia make oraz standardowej biblioteki C.
 
 Kompilacja programu:
 ```bash
@@ -210,13 +210,13 @@ Przykład pliku wyjściowego:
 Plik wyjściowy w formacie binarnym zawiera te same dane co format tekstowy, ale zapisane w reprezentacji binarnej dla efektywniejszego przechowywania i szybszego wczytywania.
 
 Każdy węzeł jest reprezentowany przez 20 bajtów, gdzie:
-   - 4 bajty: identyfikator wierzchołka (int)
-   - 8 bajtów: współrzędna X (double)
-   - 8 bajtów: współrzędna Y (double)
+- 4 bajty: identyfikator wierzchołka (int)
+- 8 bajtów: współrzędna X (double)
+- 8 bajtów: współrzędna Y (double)
 
 Wszystkie wartości zapisane są w kolejności little-endian.
 
-= Ograniczenia i wymagania 
+= Ograniczenia i wymagania
 
 == Wymagania systemowe i sprzętowe
 
@@ -237,26 +237,86 @@ Wszystkie wartości zapisane są w kolejności little-endian.
 
 == Algorytm Fruchterman-Reingold
 
-Algorytm Fruchterman-Reingold jest jednym z najpopularniejszych algorytmów force-directed do układania grafów. Traktuje on graf jako system fizyczny, gdzie:
-- Węzły są punktami masowymi, które się odpychają
-- Krawędzie działają jak sprężyny, które przyciągają połączone węzły
+Algorytm Fruchterman-Reingold jest klasycznym przykładem algorytmu siłowego (force-directed), stosowanego do wizualizacji grafów. Opiera się on na modelu fizycznym, w którym wierzchołki traktowane są jako obiekty oddziałujące siłami, natomiast krawędzie odwzorowują działanie sprężyn łączących wybrane pary węzłów. Celem algorytmu jest wyznaczenie takiego rozmieszczenia wierzchołków, aby układ osiągnął stan równowagi odpowiadający minimalnej energii.
 
-Algorytm działa iteracyjnie:
-1. Rozpoczyna od losowego rozmieszczenia węzłów
-2. W każdej iteracji oblicza siły działające na każdy węzeł:
-   - Siłę odpychającą od wszystkich innych węzłów
-   - Siłę przyciągającą od węzłów połączonych krawędzią
-3. Przemieszcza węzły zgodnie z wypadkową siłą
-4. Stopniowo zmniejsza "temperaturę" systemu (wielkość możliwych przemieszczeń)
+*Zasada działania*
 
-Parametry algorytmu:
-- Liczba iteracji: określa jak długo algorytm będzie działał
-- Temperatura początkowa: kontroluje początkową wielkość przemieszczeń
-- Stała sprężystości: wpływa na odległość między węzłami
+W modelu przyjmuje się następujące założenia:
 
-Zalety: dobra jakość wizualizacji, dostosowuje się do struktury grafu
-Wady: może wymagać wielu iteracji dla dużych grafów
+- Wszystkie węzły w grafie odpychają się wzajemnie.
+- Węzły połączone krawędzią przyciągają się do siebie.
 
+Algorytm działa iteracyjnie i obejmuje następujące etapy:
+
+1. Losowe rozmieszczenie węzłów w obszarze roboczym.
+2. Obliczenie sił działających na każdy węzeł:
+  - siły odpychającej od wszystkich pozostałych węzłów,
+  - siły przyciągającej od węzłów połączonych krawędzią.
+3. Przemieszczenie węzłów zgodnie z wypadkową sił.
+4. Obniżenie temperatury ograniczającej maksymalne przemieszczenie węzłów.
+
+Kroki 2-4 są powtarzane do momentu osiągnięcia stanu równowagi lub wykonania zadanej liczby iteracji.
+
+*Parametry algorytmu*
+
+- *Liczba iteracji* - określa czas działania algorytmu.
+- *Temperatura początkowa* - wyznacza maksymalne przemieszczenie węzłów w początkowych iteracjach.
+- *Waga krawędzi* - im większa waga, tym silniejsze przyciąganie między węzłami.
+
+*Opis matematyczny*
+
+#h(2em) *a)* *Optymalny dystans*
+
+Optymalna odległość między węzłami dana jest wzorem:
+
+$
+  k = sqrt(frac("Obszar", |V|))
+$
+
+gdzie:
+
+- $"Obszar"$ - całkowite pole powierzchni roboczej,
+- $|V|$ - liczba węzłów w grafie.
+
+#h(2em) *b)* *Reguła odpychania*
+
+Siła odpychania dla dwóch węzłów oddalonych o odległość $d$:
+
+$
+  f_r (d) = -k^2 / d
+$
+
+#h(2em) *c)* *Reguła przyciągania (z uwzględnieniem wag)*
+
+Siła przyciągania dla węzłów połączonych krawędzią o wadze $w$:
+
+$
+  f_a (d) = w dot d^2 / k
+$
+
+#h(2em) *d)* *Wypadkowa sił*
+
+Dla każdego węzła obliczany jest wektor wypadkowy:
+
+$
+  D_v = sum f_r + sum f_a
+$
+
+#h(2em) *e)* *Stabilizacja układu (chłodzenie)*
+
+Aby zapobiec oscylacjom, maksymalne przesunięcie w pojedynczej iteracji ograniczone jest przez temperaturę $t$. Wartość ta maleje w kolejnych iteracjach aż do zera.
+
+*Zalety i wady*
+
+*Zalety:*
+- generuje estetyczne i często symetryczne układy,
+- zmniejsza liczbę przecięć krawędzi,
+- ułatwia analizę struktury sieci dzięki grupowaniu silnie powiązanych węzłów,
+- ma charakter uniwersalny.
+
+*Wady:*
+- wysoka złożoność obliczeniowa dla dużych grafów (każdy węzeł oddziałuje z każdym),
+- możliwość zatrzymania w lokalnym minimum energii przy niekorzystnym doborze temperatury lub początkowego rozmieszczenia.
 == Algorytm Tutte embeddings
 
 Algorytm Tutte embeddings (znany również jako Tutte's spring theorem) to algebraiczna metoda układania grafów planarnych. Algorytm:
@@ -278,9 +338,9 @@ Parametry algorytmu:
 Zalety: gwarantuje brak przecięć krawędzi dla grafów planarnych, szybki (rozwiązanie układu równań)
 Wady: wymaga grafu planarnego i 3-spójnego dla optymalnych rezultatów
 
-= Obsługa błędów 
+= Obsługa błędów
 
-== Komunikaty o błędach 
+== Komunikaty o błędach
 
 Program wyświetla komunikaty o błędach na standardowe wyjście błędów (stderr).
 
