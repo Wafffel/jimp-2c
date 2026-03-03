@@ -44,6 +44,7 @@
   #v(2cm)
   #block(text(size: 12pt)[
     Autorzy:\
+    Krzysztof Wasilewski, Jakub Pietrzkiewicz\
     #v(0.3cm)
     Data: #datetime.today().display("[day].[month].[year]")
   ])
@@ -61,14 +62,14 @@
 
 Celem projektu jest stworzenie aplikacji konsolowej w języku C, która umożliwia wizualizację grafów planarnych poprzez wyznaczanie optymalnych współrzędnych dla ich węzłów. Program przyjmuje na wejściu graf opisany w postaci listy krawędzi i generuje plik z współrzędnymi węzłów, które pozwalają na czytelną wizualizację struktury grafu.
 
-Aplikacja implementuje dwa różne algorytmy układania grafów, co umożliwia porównanie ich efektywności i jakości generowanych wizualizacji. Program jest sterowany z linii poleceń za pomocą argumentów i opcji, co zapewnia elastyczność i możliwość automatyzacji.
+Aplikacja implementuje dwa różne algorytmy układania grafów, co umożliwia porównanie ich efektywności i jakości generowanych wizualizacji. Program jest sterowany z linii poleceń za pomocą argumentów, co zapewnia elastyczność i możliwość automatyzacji.
 
 == Dostępne funkcjonalności
 
 Program oferuje następujące funkcjonalności:
 
 - Wczytywanie grafów planarnych z plików tekstowych w formacie listy krawędzi
-- Wyznaczanie współrzędnych węzłów za pomocą wybranych algorytmów układania grafów
+- Wyznaczanie współrzędnych węzłów za pomocą wybranego algorytmu układania grafów
 - Generowanie wyników w formacie tekstowym lub binarnym (do wyboru przez użytkownika)
 - Obsługa dwóch algorytmów: Fruchterman-Reingold oraz Tutte embeddings
 - Konfiguracja parametrów działania programu za pomocą opcji linii poleceń
@@ -175,12 +176,12 @@ Poszczególne pola są oddzielone spacjami lub tabulatorami. Puste linie oraz li
 
 Przykład pliku wejściowego:
 ```
-# Przykładowy graf - kwadrat
-AB   1  2  1.0
+# Przykładowy graf
+AB   1  2  1.54
 BC   2  3  1.0
-CD   3  4  1.0
-DA   4  1  1.0
-AC   1  3  1.414
+CD   3  4  1.17
+DA   4  1  1.93
+AC   1  3  1.0
 ```
 
 == Format pliku wyjściowego tekstowego
@@ -208,67 +209,29 @@ Przykład pliku wyjściowego:
 
 Plik wyjściowy w formacie binarnym zawiera te same dane co format tekstowy, ale zapisane w reprezentacji binarnej dla efektywniejszego przechowywania i szybszego wczytywania.
 
-Struktura pliku binarnego:
-1. Nagłówek (4 bajtów):
-   - 4 bajty: liczba wierzchołków (int)
-
-2. Dane wierzchołków (24 bajty na wierzchołek):
+Każdy węzeł jest reprezentowany przez 20 bajtów, gdzie:
    - 4 bajty: identyfikator wierzchołka (int)
    - 8 bajtów: współrzędna X (double)
    - 8 bajtów: współrzędna Y (double)
-   - 4 bajty: padding/zarezerwowane
 
-Wszystkie wartości zapisane są w kolejności big-endian.
+Wszystkie wartości zapisane są w kolejności little-endian.
 
-= Ograniczenia i wymagania
+= Ograniczenia i wymagania 
 
-== Wymagania systemowe
+== Wymagania systemowe i sprzętowe
 
-- System operacyjny: Linux, macOS, Unix (Windows poprzez WSL/MinGW/Cygwin)
-- Kompilator: zgodny z C99 lub nowszym (np. GCC 4.8+, Clang 3.5+)
-- Narzędzie budowania: GNU Make
-- Dostępna pamięć RAM: zależna od rozmiaru grafu (patrz niżej)
+- *Architektura:* Wymagany procesor Little-Endian (np. x86_64).
+- *Środowisko:* Wymageany kompilator GCC narzędzie Make.
+- *Pamięć:* Przechowywanie grafu w pamięci RAM; dla standardowych grafów (mniej niż 5000 węzłów) zużycie nie przekracza 1 GB.
 
-== Ograniczenia formatu danych
+== Ograniczenia danych i struktury grafu
+- *Wierzchołki:* Identyfikatory muszą być dodatnimi liczbami całkowitymi.
+- *Krawędzie:* Maksymalna długość etykiety to 32 znaki.
+- *Struktura grafu:* Program obsługuje wyłącznie grafy spójne; brak wsparcia dla pętli własnych (węzeł połączony z samym sobą) oraz multigrafów (wiele krawędzi między tą samą parą węzłów).
 
-- Identyfikatory wierzchołków: liczby całkowite dodatnie
-- Długość nazw krawędzi: maksymalnie 64 znaki
-- Maksymalna długość linii w pliku wejściowym: 256 znaków
-- Graf musi być spójny
-- Minimalna liczba wierzchołków: 3
-- Minimalna liczba krawędzi: 2
-
-== Wymagania dla algorytmów
-
-*Algorytm Fruchterman-Reingold:*
-- Złożoność obliczeniowa: O(V² x I), gdzie V = liczba wierzchołków, I = liczba iteracji
-- Działa dla dowolnych grafów spójnych
-- Nie są obsługiwane pętle własne (krawędzie łączące węzeł z samym sobą)
-
-*Algorytm Tutte:*
-- Złożoność obliczeniowa: O(V³) dla rozwiązania układu równań liniowych
-- Wymaga grafu planarnego
-- Wymaga grafu 3-spójnego dla gwarancji braku przecięć krawędzi
-- Nie są obsługiwane pętle własne
-
-*Ograniczenia wspólne:*
-- Nie są obsługiwane multigrafy (wiele krawędzi między tymi samymi parami węzłów)
-
-== Wydajność w zależności od zasobów
-
-Zużycie pamięci RAM jest proporcjonalne do rozmiaru grafu:
-- Przechowywanie struktury grafu: około V × (V + E) × 8 bajtów
-- Dla grafu 100 wierzchołków, 200 krawędzi: około 1 MB RAM
-- Dla grafu 500 wierzchołków, 1000 krawędzi: około 10 MB RAM  
-- Dla grafu 1000 wierzchołków, 5000 krawędzi: około 50 MB RAM
-- Dla grafu 5000 wierzchołków, 20000 krawędzi: około 1 GB RAM
-
-Czas obliczeń zależy od procesora i rozmiaru grafu:
-- Algorytm Fruchterman-Reingold jest O(V² × I) - dla dużych grafów należy zmniejszyć liczbę iteracji
-- Algorytm Tutte jest O(V³) - dla grafów powyżej 1000 węzłów czas obliczeń może być znaczący
-- Sugerowane liczby iteracji dla F-R: 1000 dla grafów < 500 węzłów, 200-500 dla 500-2000 węzłów, 50-200 dla większych
-
-Program nie narzuca sztywnych limitów na rozmiar grafu - praktyczne ograniczenia wynikają z dostępnej pamięci RAM i akceptowalnego czasu obliczeń dla danego sprzętu.
+== Specyfika algorytmów
+- *Fruchterman-Reingold:* Złożoność $O(V^2 c dot I)$ sprawia, że przy bardzo dużych grafach czas obliczeń rośnie drastycznie.
+- *Tutte:* Wymaga grafu planarnego i najlepiej 3-spójnego (takiego, którego nie da się rozspójnić usunięciem mniej niż trzech wierzchołków); brak spełnienia tego warunku może spowodować nakładanie się wierzchołków.
 
 = Opis algorytmów
 
@@ -301,12 +264,12 @@ Algorytm Tutte embeddings (znany również jako Tutte's spring theorem) to algeb
 2. Pozostałe węzły (wewnętrzne) umieszcza w pozycjach będących środkiem ciężkości ich sąsiadów
 3. Rozwiązuje układ równań liniowych, aby znaleźć optymalne pozycje
 
-Matematycznie, dla każdego węzła wewnętrznego `v`:
-```
-x(v) = (Σ x(u)) / deg(v)
-y(v) = (Σ y(u)) / deg(v)
-```
-gdzie suma jest po wszystkich sąsiadach `u` węzła `v`.
+Matematycznie, dla każdego węzła wewnętrznego $v$:
+
+$ x(v) = (sum x(u)) / deg(v) $
+$ y(v) = (sum y(u)) / deg(v) $
+
+gdzie suma jest po wszystkich sąsiadach $u$ węzła $v$:
 
 Parametry algorytmu:
 - Kształt wielokąta dla węzłów brzegowych (domyślnie: okrąg)
@@ -319,7 +282,7 @@ Wady: wymaga grafu planarnego i 3-spójnego dla optymalnych rezultatów
 
 == Komunikaty o błędach 
 
-Program wyświetla komunikaty o błędach na standardowe wyjście błędów (stderr). Każdy komunikat zawiera opis problemu i sugestię rozwiązania.
+Program wyświetla komunikaty o błędach na standardowe wyjście błędów (stderr).
 
 Główne kategorie błędów:
 
@@ -342,7 +305,6 @@ Główne kategorie błędów:
 - `Error: Self-loop detected at vertex <v>` - wykryto pętlę własną
 - `Error: Graph is empty` - graf nie zawiera krawędzi
 - `Error: Graph is not planar` - graf nie jest planarny (dla algorytmu Tutte)
-- `Error: Graph is not 3-connected` - graf nie jest 3-spójny (dla algorytmu Tutte)
 
 *Błędy pamięci:*
 - `Error: Memory allocation failed` - brak pamięci
