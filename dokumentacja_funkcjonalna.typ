@@ -71,14 +71,14 @@ Program oferuje następujące funkcjonalności:
 - Wczytywanie grafów planarnych z plików tekstowych w formacie listy krawędzi
 - Wyznaczanie współrzędnych węzłów za pomocą wybranego algorytmu układania grafów
 - Generowanie wyników w formacie tekstowym lub binarnym (do wyboru przez użytkownika)
-- Obsługa dwóch algorytmów: Fruchterman-Reingold oraz Tutte embeddings
+- Obsługa dwóch algorytmów: Fruchterman-Reingold oraz Tutte Embedding
 - Konfiguracja parametrów działania programu za pomocą opcji linii poleceń
 
 = Instrukcja użytkowania
 
 == Instalacja i kompilacja
 
-Program wymaga kompilatora C (np. GCC), narzędzia make oraz standardowej biblioteki C. 
+Program wymaga kompilatora C (np. GCC), narzędzia make oraz standardowej biblioteki C.
 
 Kompilacja programu:
 ```bash
@@ -92,7 +92,7 @@ make clean
 
 == Sposób uruchamiania
 
-Program jest uruchamiany z linii poleceń. składnia wygląda następująco:
+Program jest uruchamiany z linii poleceń. Składnia wygląda następująco:
 
 ```bash
 ./graph [opcje] <plik_wejściowy> <plik_wyjściowy>
@@ -210,18 +210,18 @@ Przykład pliku wyjściowego:
 Plik wyjściowy w formacie binarnym zawiera te same dane co format tekstowy, ale zapisane w reprezentacji binarnej dla efektywniejszego przechowywania i szybszego wczytywania.
 
 Każdy węzeł jest reprezentowany przez 20 bajtów, gdzie:
-   - 4 bajty: identyfikator wierzchołka (int)
-   - 8 bajtów: współrzędna X (double)
-   - 8 bajtów: współrzędna Y (double)
+- 4 bajty: identyfikator wierzchołka (int)
+- 8 bajtów: współrzędna X (double)
+- 8 bajtów: współrzędna Y (double)
 
 Wszystkie wartości zapisane są w kolejności little-endian.
 
-= Ograniczenia i wymagania 
+= Ograniczenia i wymagania
 
 == Wymagania systemowe i sprzętowe
 
 - *Architektura:* Wymagany procesor Little-Endian (np. x86_64).
-- *Środowisko:* Wymageany kompilator GCC narzędzie Make.
+- *Środowisko:* Wymagany kompilator GCC i narzędzie Make.
 - *Pamięć:* Przechowywanie grafu w pamięci RAM; dla standardowych grafów (mniej niż 5000 węzłów) zużycie nie przekracza 1 GB.
 
 == Ograniczenia danych i struktury grafu
@@ -230,7 +230,7 @@ Wszystkie wartości zapisane są w kolejności little-endian.
 - *Struktura grafu:* Program obsługuje wyłącznie grafy spójne; brak wsparcia dla pętli własnych (węzeł połączony z samym sobą) oraz multigrafów (wiele krawędzi między tą samą parą węzłów).
 
 == Specyfika algorytmów
-- *Fruchterman-Reingold:* Złożoność $O(V^2 c dot I)$ sprawia, że przy bardzo dużych grafach czas obliczeń rośnie drastycznie.
+- *Fruchterman-Reingold:* Złożoność $O((V^2 + E) dot I)$ sprawia, że przy bardzo dużych grafach czas obliczeń rośnie drastycznie.
 - *Tutte:* Wymaga grafu planarnego i najlepiej 3-spójnego (takiego, którego nie da się rozspójnić usunięciem mniej niż trzech wierzchołków); brak spełnienia tego warunku może spowodować nakładanie się wierzchołków.
 
 = Opis algorytmów
@@ -244,8 +244,8 @@ Algorytm Fruchterman-Reingold jest jednym z najpopularniejszych algorytmów forc
 Algorytm działa iteracyjnie:
 1. Rozpoczyna od losowego rozmieszczenia węzłów
 2. W każdej iteracji oblicza siły działające na każdy węzeł:
-   - Siłę odpychającą od wszystkich innych węzłów
-   - Siłę przyciągającą od węzłów połączonych krawędzią
+  - Siłę odpychającą od wszystkich innych węzłów
+  - Siłę przyciągającą od węzłów połączonych krawędzią
 3. Przemieszcza węzły zgodnie z wypadkową siłą
 4. Stopniowo zmniejsza "temperaturę" systemu (wielkość możliwych przemieszczeń)
 
@@ -257,30 +257,60 @@ Parametry algorytmu:
 Zalety: dobra jakość wizualizacji, dostosowuje się do struktury grafu
 Wady: może wymagać wielu iteracji dla dużych grafów
 
-== Algorytm Tutte embeddings
+== Algorytm Tutte Embedding
 
-Algorytm Tutte embeddings (znany również jako Tutte's spring theorem) to algebraiczna metoda układania grafów planarnych. Algorytm:
-1. Wybiera węzły zewnętrzne (tworzące brzeg) i ustala je na obwodzie wypukłego wielokąta
-2. Pozostałe węzły (wewnętrzne) umieszcza w pozycjach będących środkiem ciężkości ich sąsiadów
-3. Rozwiązuje układ równań liniowych, aby znaleźć optymalne pozycje
+Algorytm Tutte'a wyznacza współrzędne wierzchołków grafu planarnego. Jego działanie opiera się na matematycznym modelu równowagi sił przyciągania, co pozwala na uzyskanie przejrzystej i uporządkowanej wizualizacji.
 
-Matematycznie, dla każdego węzła wewnętrznego $v$:
+=== Mechanizm automatycznego kotwiczenia
 
-$ x(v) = (sum x(u)) / deg(v) $
-$ y(v) = (sum y(u)) / deg(v) $
+Aby umożliwić jednoznaczne rozpięcie grafu na płaszczyźnie, program stosuje system czterech statycznych punktów podparcia. Proces ten przebiega w sposób zautomatyzowany:
 
-gdzie suma jest po wszystkich sąsiadach $u$ węzła $v$:
+*Identyfikacja wierzchołków bazowych:* Aplikacja analizuje strukturę połączeń i wybiera cztery wierzchołki o najwyższym stopniu (posiadające najwięcej sąsiadów). Pełnią one rolę "kotwic" rozciągających graf.
 
-Parametry algorytmu:
-- Kształt wielokąta dla węzłów brzegowych (domyślnie: okrąg)
-- Wybór węzłów brzegowych (domyślnie: automatyczny na podstawie struktury grafu)
+*Definicja obszaru roboczego:* Wybrane wierzchołki zostają na stałe przypisane do narożników kwadratu o boku 1000 jednostek. Ich współrzędne są niezmienne w trakcie trwania obliczeń i wynoszą odpowiednio: $(0,0)$, $(1000,0)$, $(1000,1000)$ oraz $(0,1000)$.
 
-Zalety: gwarantuje brak przecięć krawędzi dla grafów planarnych, szybki (rozwiązanie układu równań)
-Wady: wymaga grafu planarnego i 3-spójnego dla optymalnych rezultatów
+*Statyczność ramy:* Wierzchołki bazowe są wyłączone z procesu iteracyjnego, co zmusza pozostałą część grafu do dopasowania się do sztywnych granic obszaru roboczego.
 
-= Obsługa błędów 
+=== Matematyczny model wyznaczania współrzędnych
 
-== Komunikaty o błędach 
+Pozycje wszystkich wierzchołków wewnętrznych są wyznaczane drogą rozwiązywania układu równań liniowych. Algorytm dąży do osiągnięcia stanu, w którym każdy wierzchołek $i$ znajduje się dokładnie w ważonym środku ciężkości swoich sąsiadów.
+
+Współrzędne $(x, y)$ każdego wolnego wierzchołka obliczane są według wzorów:
+
+$ x_i = frac(sum_(j in N(i)) w_(i j) dot x_j, sum_(j in N(i)) w_(i j)) $
+
+$ y_i = frac(sum_(j in N(i)) w_(i j) dot y_j, sum_(j in N(i)) w_(i j)) $
+
+Legenda oznaczeń:
+- $x_i, y_i$ - wyznaczane współrzędne wierzchołka $i$
+- $N(i)$ - zbiór wierzchołków sąsiadujących bezpośrednio z wierzchołkiem $i$
+- $w_(i j)$ - waga krawędzi łączącej wierzchołek $i$ z wierzchołkiem $j$ (pobrana z pliku wejściowego)
+
+=== Proces iteracyjnej stabilizacji układu
+
+Wyznaczenie współrzędnych nie jest operacją jednorazową, lecz procesem dążenia do równowagi  Przebiega on w następujący sposób:
+
+*Inicjalizacja:* Wierzchołki ramy trafiają do narożników kwadratu, a wszystkie pozostałe węzły są wstępnie umieszczane w centrum obszaru roboczego na pozycji $(500, 500)$.
+
+*Iteracja:* Program wielokrotnie przebiega przez listę wolnych wierzchołków, aktualizując ich pozycje na podstawie aktualnych położeń ich sąsiadów.
+
+*Warunek stopu:* Obliczenia kończą się, gdy maksymalne przesunięcie wierzchołka w danej iteracji spadnie poniżej zadanego progu precyzji $epsilon = 0.0001$. Oznacza to, że układ osiągnął stabilność i wierzchołki znalazły swoje docelowe miejsca.
+
+=== Funkcjonalne właściwości rozwiązania
+
+Zastosowanie powyższej metody gwarantuje użytkownikowi uzyskanie wyników o następujących cechach:
+
+*Domknięcie wypukłe:* Algorytm gwarantuje, że żaden wierzchołek ani krawędź nie znajdzie się poza wyznaczoną ramą kwadratową.
+
+*Wypukłość ścian:* Wszystkie wewnętrzne obszary ograniczone krawędziami zostaną przedstawione jako wielokąty wypukłe, co zapewnia wysoką czytelność i estetykę wizualizacji.
+
+*Reprezentacja wag:* Wyższe wagi skutkują mniejszą odległością między wierzchołkami, co pozwala na intuicyjną analizę skupisk w grafie.
+
+*Determinizm:* Wynik nie jest zależny od żadnych zmiennych losowych, te same argumenty wejściowe zawsze wygenerują identyczny układ współrzędnych.
+
+= Obsługa błędów
+
+== Komunikaty o błędach
 
 Program wyświetla komunikaty o błędach na standardowe wyjście błędów (stderr).
 
