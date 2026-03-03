@@ -1,0 +1,96 @@
+UWAGA: tematy projektów są takie same dla wszystkich, ale prowadzący będą zwracali bardzo dużą uwagę na wykrywanie plagiatów. Bardzo prosimy nie udostępniać sobie kodu (nawet do ,,obejrzenia").
+
+Nieuczciwość będzie karana bardzo surowo: niezaliczenie kursu i wniosek do Dziekana o przekazanie sprawy Komisji Dyscyplinarnej.
+
+Każdy dwuosobowy zespół wykonuje dwa projekty. W pierwszym wykorzystywany jest język C (maks. 15p.), a w drugim język Java i biblioteka Swing (maks. 15p.)﻿.
+
+Cała dokumentacja do programu powinna zostać sporządzona przy wykorzystaniu LaTeX.﻿﻿ (https://www.overleaf.com/about/why-latex, https://pl.wikipedia.org/wiki/LaTeX)
+
+Projekt powinien być na bieżąco prowadzony przy wykorzystaniu GIT na platformie GitHub.﻿﻿ (https://github.com/)
+
+Opis zadania projektowego
+Zadanie polega na stworzeniu dwóch aplikacji: jednej w języku C, a drugiej w Javie. Każda z aplikacji ma wyznaczać współrzędne węzłów dla ,,ładnej" wizualizacji grafu planarnego podanego w postaci listy krawędzi.
+
+Uwaga: istnieje kilka sposobów wyznaczania współrzędnych wierzchołków. Każdy zespół powinien zaimplementować, przetestować i porównać co najmniej dwa wybrane algorytmy.
+Przykłady algorytmów: Fruchterman–Reingold / Eades, Spectral layout, triangulacja, Twierdzenie Tutte o sprężynach (https://en.wikipedia.org/wiki/Tutte_embedding),... poniżej można znaleźć dwie przykładowe przeglądowe pozycje literatury (pliki PDF dołączone do tej sekcji).
+
+Aplikacja w języku C ma być sterowana tylko z linii poleceń, przez argumenty i opcje. Aplikacja napisana w języku Java powinna być sterowana zdarzeniami przez graficzny interfejs użytkownika.
+
+Przykładowe grafy będą plikami tekstowymi o postaci
+
+<nazwa_krawędzi> <wierzchołek_A> <wierzchołek_B> <waga_krawędzi>
+...
+Przykład:
+
+AB   1  2  1
+BC   2  3  1
+CD   3  4  1
+DB   4  2  1.407
+Wynikiem działania programu ma być plik tekstowy lub binarny (w zależności od wyboru użytkownika) zawierający listę współrzędnych wierzchołków:
+
+<wierzchołek> <współrzędna_x> <współrzędna_y>
+...
+Przykład:
+
+1 0.0 0.0
+2 1.0 0.0
+3 1.0 1.0
+4 0.0 1.0
+Dokumentacja projektu C
+Projekt w języku C musi zawierać następujące rodzaje dokumentacji:
+
+Dokumentacja funkcjonalna opisująca działanie projektu
+Dokumentacja implementacyjna przedstawiająca szczegóły implementacyjne programu, specyfikacje wejścia oraz wyjścia, plików wyjściowych, etc.
+Końcowa dokumentacja projektu
+Część 1 oraz 2 dokumentacji zostanie przekazana innemu zespołowi, którego to zadaniem będzie na tej podstawie implementacja części w języku JAVA wczytującej pliki wyjściowe tworzone przez program w języku C
+
+Założenia do części JAVA
+Graficzny interfejs użytkownika
+Projekt w Javie posiada graficzny interfejs użytkownika wykonany w technologii SWING. Interfejs graficzny powinien składać się z:
+
+paska menu z (co najmniej) opcją do: wczytania grafu z pliku tekstowego i binarnego oraz zapisu wyników oraz, ewentualnie, także grafu,
+komponentu prezentującego wczytany graf (należy zaimplementować samodzielnie metodę do rysowania tego komponentu SWING),
+dodatkowego panelu narzędziowego pozwalającego na: wybór algorytmu, modyfikację współrzędnych, zmianę pola widzenia, zmianę sposobu wyświetlania węzłów/krawędzi (np. pokazywanie/ukrywanie etykiet/wag).
+Proszę zwrócić uwagę na informowanie użytkownika o błędach oraz o zachowanie spójności między stanami komponentów.
+
+W trakcie semestru może nastąpić niewielkie zmiany/doprecyzowanie niektórych wymagań, co ma pokazać, że tworzony program jest elastyczny i pozwala na wprowadzenie zmian
+
+Dokumentacja projektu Java
+Projekt interfejsu użytkownika w Java z wykorzystaniem Java Swing - instrukcja użytkownika.
+Podział systemu na moduły, główne wzorce projektowe.
+Dokumentacja końcowa projektu (z diagramem klas).
+W ramach dokumentacji końcowej należy zawrzeć pełen opis projektu﻿﻿ (analogicznie jak w części z języka C) rozszerzony o pełen diagram wykorzystanych klas (dopuszczalne wykorzystanie narzędzi pomocniczych do generowania diagramu) oraz informacji koniecznych do przekazania zespołowi programistycznemu. W diagramie klas nie należy uwzględniać klas systemowych chyba, że wymaga tego opis wykorzystywanej funkcjonalności.
+
+Harmonogram realizacji projektu
+Dokumentacja funkcjonalna język C - 2 tygodnie od rozpoczęcia zajęć
+
+Dokumentacja implementacyjna język C - 4 tygodnie od rozpoczęcia zajęć
+
+Dokumentacja projektowa język C - 8 tygodni od rozpoczęcia zajęć
+
+Dokumentacja funkcjonalna język Java - 8 tygodni od rozpoczęcia zajęć
+
+Dokumentacja imlementacyjna język Java - 10 tygodni od rozpoczęcia zajęć
+
+Dokumentacja końcowa język Java - do ustalenia z prowadzącym projekt
+
+powyższe terminy mogą ulec zmianie po konsultacji z prowadzącym zajęcia
+
+Uwagi końcowe
+Specyfikacja funkcjonalna
+Jest adresowana do końcowego użytkownika aplikacji. Powinna pozwalać na zrozumienie zakresu funkcji programu i jego ograniczenia. Konieczne jest opisanie w niej, jak użytkownik może użyć programu: w jakim formacie program przyjmuje dane, w jakim generuje wyniki, jakie są argumenty wywołania. Specyfikacja funkcjonalna powinna też zawierać sekcję opisującą sytuacje wyjątkowe, które przewiduje program. Sytuacje te powinny być opatrzone również opisem dotyczącym tego, jaką wiadomość wyświetli program i co taki komunikat oznacza.
+
+Kluczowe elementy specyfikacji funkcjonalnej:
+
+proponowany cel projektu (samodzielny, a nie przepisany z opisu zadania przez prowadzącego),
+opis funkcji udostępnianych przez program,
+lista dostępnych flag sterujących programem, wraz z dokładnym opisem dopuszczalnych wartości argumentów tych flag,
+jeżeli program akceptuje niestandardowe formaty danych należy je opisać,
+przegląd sytuacji wyjątkowych obsługiwanych przez program (komunikaty z wytłumaczeniem sytuacji oraz ew. kod powrotu programu).
+Tam, gdzie to możliwe warto jest podawać przykłady, które może wykorzystać użytkownik, np.:
+przykładowy format pliku (wraz z opisem, co taki plik reprezentuje), przykładowe parametry wywołania programu (wraz z opisem, co zostało skonfigurowane).﻿
+
+Dokumentacja implementacyjna
+Jest ,,przewodnikiem po kodzie'' - powinna ułatwić zrozumienie kodu i jego pielęgnację oraz rozwój.
+
+Dokumentacja projektu musi być stworzona przy pomocy narzędzia składu LaTeX przydatne może być narzędzie: https://www.overleaf.com/
