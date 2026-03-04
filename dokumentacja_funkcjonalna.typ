@@ -72,13 +72,13 @@ Program oferuje następujące funkcjonalności:
 - Wyznaczanie współrzędnych węzłów za pomocą wybranego algorytmu układania grafów
 - Generowanie wyników w formacie tekstowym lub binarnym (do wyboru przez użytkownika)
 - Obsługa dwóch algorytmów: Fruchterman-Reingold oraz Tutte Embedding
-- Konfiguracja parametrów działania programu za pomocą opcji linii poleceń
+- Konfiguracja parametrów działania programu za pomocą argumentów linii poleceń
 
 = Instrukcja użytkowania
 
 == Instalacja i kompilacja
 
-Program wymaga kompilatora C (np. GCC), narzędzia make oraz standardowej biblioteki C.
+Program wymaga kompilatora C (np. GCC) oraz narzędzia make.
 
 Kompilacja programu:
 ```bash
@@ -428,7 +428,7 @@ Wywołanie programu:
 ./graph square.txt square_out.txt
 ```
 
-Plik wyjściowy `square_out.txt`:
+Przykładowy plik wyjściowy `square_out.txt`:
 ```
 1 0.0 0.0
 2 1.0 0.0
