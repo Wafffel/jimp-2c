@@ -3,7 +3,7 @@ CFLAGS = -Wall
 SRC_DIR = src
 OBJ_DIR = bin/obj
 BIN_DIR = bin
-TARGET = $(BIN_DIR)/misja
+TARGET = $(BIN_DIR)/graph
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
