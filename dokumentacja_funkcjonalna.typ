@@ -180,7 +180,7 @@ gdzie:
 
 Poszczególne pola są oddzielone spacjami lub tabulatorami. Puste linie i linie z `#` są ignorowane.
 
-*Mechanizm przetwarzania:* Program wykonuje dwa skany pliku. Pierwszy zlicza elementy i alokuje pamięć, drugi wczytuje dane. ID wierzchołków mapowane są na indeksy od $0$ do $n-1$.
+*Mechanizm przetwarzania:* Program wykonuje dwa skany pliku. Pierwszy zlicza elementy i alokuje pamięć, drugi wczytuje dane.
 
 Przykład pliku wejściowego:
 ```
