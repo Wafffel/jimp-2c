@@ -443,14 +443,6 @@ Wywołanie programu:
 ./graph square.txt square_out.txt
 ```
 
-Przykładowy plik wyjściowy `square_out.txt`:
-```
-1 0.0 0.0
-2 1.0 0.0
-3 1.0 1.0
-4 0.0 1.0
-```
-
 Wynik: węzły ułożone w kwadrat, gotowe do wizualizacji.
 
 == Przykład 2: Graf z wagami i algorytm Tutte
