@@ -62,7 +62,7 @@
 
 Celem projektu jest stworzenie aplikacji konsolowej w języku C, która umożliwia wizualizację grafów planarnych poprzez wyznaczanie optymalnych współrzędnych dla ich węzłów. Program przyjmuje na wejściu graf opisany w postaci listy krawędzi i generuje plik z współrzędnymi węzłów, które pozwalają na czytelną wizualizację struktury grafu.
 
-Aplikacja implementuje dwa różne algorytmy układania grafów, co umożliwia porównanie ich efektywności i jakości generowanych wizualizacji. Program jest sterowany z linii poleceń za pomocą argumentów, co zapewnia elastyczność i możliwość automatyzacji.
+Aplikacja implementuje dwa algorytmy układania grafów, co umożliwia porównanie ich efektywności i jakości generowanych wizualizacji. Program jest sterowany z linii poleceń za pomocą argumentów, co zapewnia elastyczność i możliwość automatyzacji.
 
 == Dostępne funkcjonalności
 
@@ -119,13 +119,19 @@ gdzie:
   - Dostępne wartości: `text`, `binary`
   - Domyślnie: `text`
 
-- `-i <iteracje>` lub `--iterations <iteracje>` - liczba iteracji dla algorytmu Fruchterman-Reingold
+- `-i <iteracje>` lub `--iterations <iteracje>` - liczba iteracji algorytmu
   - Wartość: liczba całkowita dodatnia
   - Domyślnie: `1000`
+  - Dla algorytmu Fruchterman-Reingold: określa stałą liczbę kroków symulacji
+  - Dla algorytmu Tutte: stanowi górny limit iteracji w przypadku braku wcześniejszej zbieżności
 
 - `-t <temperatura>` lub `--temperature <temperatura>` - wartość początkowej temperatury dla algorytmu Fruchterman-Reingold
   - Wartość: liczba zmiennoprzecinkowa dodatnia
   - Domyślnie: `10.0`
+
+- `-s <rozmiar>` lub `--size <rozmiar>` - rozmiar boku obszaru roboczego
+  - Wartość: liczba zmiennoprzecinkowa dodatnia
+  - Domyślnie: `1000.0`
 
 - `-h` lub `--help` - wyświetla pomoc i dostępne opcje
 
@@ -151,9 +157,9 @@ Konfiguracja parametrów algorytmu Fruchterman-Reingold:
 ./graph -a fruchterman -i 2000 input.txt output.txt
 ```
 
-Łączenie wielu opcji:
+Pełna konfiguracja parametrów:
 ```bash
-./graph --algorithm tutte --format binary input.txt output.bin
+./graph -a fruchterman -i 2000 -t 15.0 -s 2000 input.txt output.txt
 ```
 
 = Format danych
@@ -172,7 +178,9 @@ gdzie:
 - `<wierzchołek_B>` - identyfikator drugiego wierzchołka (liczba całkowita dodatnia)
 - `<waga_krawędzi>` - waga krawędzi (liczba zmiennoprzecinkowa)
 
-Poszczególne pola są oddzielone spacjami lub tabulatorami. Puste linie oraz linie zaczynające się od znaku `#` są ignorowane (komentarze).
+Poszczególne pola są oddzielone spacjami lub tabulatorami. Puste linie i linie z `#` są ignorowane.
+
+*Mechanizm przetwarzania:* Program wykonuje dwa skany pliku. Pierwszy zlicza elementy i alokuje pamięć, drugi wczytuje dane. ID wierzchołków mapowane są na indeksy od $0$ do $n-1$.
 
 Przykład pliku wejściowego:
 ```
@@ -207,37 +215,35 @@ Przykład pliku wyjściowego:
 
 == Format pliku wyjściowego binarnego
 
-Plik wyjściowy w formacie binarnym zawiera te same dane co format tekstowy, ale zapisane w reprezentacji binarnej dla efektywniejszego przechowywania i szybszego wczytywania.
+Plik wyjściowy w formacie binarnym zawiera te same dane co format tekstowy, ale zapisane w reprezentacji binarnej dla efektywniejszego przechowywania i szybszego wczytywania. Dane zapisywane są jako bezpośredni zrzut z pamięci (Little-Endian dla architektury x86_64).
 
 Każdy węzeł jest reprezentowany przez 20 bajtów, gdzie:
 - 4 bajty: identyfikator wierzchołka (int)
 - 8 bajtów: współrzędna X (double)
 - 8 bajtów: współrzędna Y (double)
 
-Wszystkie wartości zapisane są w kolejności little-endian.
-
 = Ograniczenia i wymagania
 
 == Wymagania systemowe i sprzętowe
 
 - *Architektura:* Wymagany procesor Little-Endian (np. x86_64).
-- *Środowisko:* Wymagany kompilator GCC i narzędzie Make.
-- *Pamięć:* Przechowywanie grafu w pamięci RAM; dla standardowych grafów (mniej niż 5000 węzłów) zużycie nie przekracza 1 GB.
+- *Środowisko:* Kompilator GCC i narzędzie Make.
+- *Pamięć:* Dla grafów mniejszych niż 5000 węzłów zużycie nie przekracza 1 GB RAM.
 
 == Ograniczenia danych i struktury grafu
 - *Wierzchołki:* Identyfikatory muszą być dodatnimi liczbami całkowitymi.
 - *Krawędzie:* Maksymalna długość etykiety to 32 znaki.
-- *Struktura grafu:* Program obsługuje wyłącznie grafy spójne; brak wsparcia dla pętli własnych (węzeł połączony z samym sobą) oraz multigrafów (wiele krawędzi między tą samą parą węzłów).
+- *Struktura grafu:* Program obsługuje wyłącznie grafy spójne bez pętli własnych i bez multigrafów.
 
 == Specyfika algorytmów
-- *Fruchterman-Reingold:* Złożoność $O((V^2 + E) dot I)$ sprawia, że przy bardzo dużych grafach czas obliczeń rośnie drastycznie.
-- *Tutte:* Wymaga grafu planarnego i najlepiej 3-spójnego (takiego, którego nie da się rozspójnić usunięciem mniej niż trzech wierzchołków); brak spełnienia tego warunku może spowodować nakładanie się wierzchołków.
+- *Fruchterman-Reingold:* Złożoność $O((V^2 + E) dot I)$ - przy dużych grafach czas obliczeń rośnie znacząco.
+- *Tutte:* Wymaga grafu planarnego i najlepiej 3-spójnego; inaczej możliwe nakładanie się wierzchołków.
 
 = Opis algorytmów
 
 == Algorytm Fruchterman-Reingold
 
-Algorytm Fruchterman-Reingold jest klasycznym przykładem algorytmu siłowego (force-directed), stosowanego do wizualizacji grafów. Opiera się on na modelu fizycznym, w którym wierzchołki traktowane są jako obiekty oddziałujące siłami, natomiast krawędzie odwzorowują działanie sprężyn łączących wybrane pary węzłów. Celem algorytmu jest wyznaczenie takiego rozmieszczenia wierzchołków, aby układ osiągnął stan równowagi odpowiadający minimalnej energii.
+Algorytm Fruchterman-Reingold jest algorytmem siłowym (force-directed) do wizualizacji grafów. Opiera się na modelu fizycznym, w którym wierzchołki oddziałują siłami, a krawędzie działają jak sprężyny. Celem jest układ w stanie równowagi o minimalnej energii.
 
 *Zasada działania*
 
@@ -323,17 +329,23 @@ Algorytm Tutte'a wyznacza współrzędne wierzchołków grafu planarnego. Jego d
 
 === Mechanizm automatycznego kotwiczenia
 
-Aby umożliwić jednoznaczne rozpięcie grafu na płaszczyźnie, program stosuje system czterech statycznych punktów podparcia. Proces ten przebiega w sposób zautomatyzowany:
+Aby umożliwić rozpięcie grafu, program stosuje cztery statyczne punkty podparcia:
 
-*Identyfikacja wierzchołków bazowych:* Aplikacja analizuje strukturę połączeń i wybiera cztery wierzchołki o najwyższym stopniu (posiadające najwięcej sąsiadów). Pełnią one rolę "kotwic" rozciągających graf.
+*Identyfikacja wierzchołków bazowych:* Wybierane są cztery wierzchołki o najwyższym stopniu. Przy remisie decyduje niższy ID. Wierzchołki sortowane jako $V_1, V_2, V_3, V_4$.
 
-*Definicja obszaru roboczego:* Wybrane wierzchołki zostają na stałe przypisane do narożników kwadratu o boku 1000 jednostek. Ich współrzędne są niezmienne w trakcie trwania obliczeń i wynoszą odpowiednio: $(0,0)$, $(1000,0)$, $(1000,1000)$ oraz $(0,1000)$.
+*Definicja obszaru roboczego:* Wierzchołki przypisane do narożników kwadratu o boku domyślnie 1000 jednostek ("bok obszaru roboczego"):
+- $V_1$: $(0, 0)$, $V_2$: $("bok", 0)$, $V_3$: $("bok", "bok")$, $V_4$: $(0, "bok")$
 
-*Statyczność ramy:* Wierzchołki bazowe są wyłączone z procesu iteracyjnego, co zmusza pozostałą część grafu do dopasowania się do sztywnych granic obszaru roboczego.
+*Statyczność ramy:* Wierzchołki bazowe są wyłączone z iteracji, zmuszając resztę grafu do dopasowania.
+
+*Obsługa małych grafów:* Dla mniejszych niż 4 węzłów stosowane jest automatyczne rozmieszczenie:
+- *1 węzeł:* $("bok"/2, "bok"/2)$
+- *2 węzły:* $(0, 0)$ oraz $("bok", "bok")$
+- *3 węzły:* $(0, 0)$, $("bok", 0)$ oraz $("bok"/2, "bok")$
 
 === Matematyczny model wyznaczania współrzędnych
 
-Pozycje wszystkich wierzchołków wewnętrznych są wyznaczane drogą rozwiązywania układu równań liniowych. Algorytm dąży do osiągnięcia stanu, w którym każdy wierzchołek $i$ znajduje się dokładnie w ważonym środku ciężkości swoich sąsiadów.
+Pozycje wierzchołków wewnętrznych wyznaczane są przez rozwiązanie układu równań liniowych. Każdy wierzchołek $i$ jest umieszczany w ważonym środku ciężkości swoich sąsiadów.
 
 Współrzędne $(x, y)$ każdego wolnego wierzchołka obliczane są według wzorów:
 
@@ -350,23 +362,25 @@ Legenda oznaczeń:
 
 Wyznaczenie współrzędnych nie jest operacją jednorazową, lecz procesem dążenia do równowagi  Przebiega on w następujący sposób:
 
-*Inicjalizacja:* Wierzchołki ramy trafiają do narożników kwadratu, a wszystkie pozostałe węzły są wstępnie umieszczane w centrum obszaru roboczego na pozycji $(500, 500)$.
+*Inicjalizacja:* Wierzchołki ramy trafiają do narożników kwadratu, a wszystkie pozostałe węzły są wstępnie umieszczane w centrum obszaru roboczego na pozycji $("bok"/2, "bok"/2)$.
 
 *Iteracja:* Program wielokrotnie przebiega przez listę wolnych wierzchołków, aktualizując ich pozycje na podstawie aktualnych położeń ich sąsiadów.
 
-*Warunek stopu:* Obliczenia kończą się, gdy maksymalne przesunięcie wierzchołka w danej iteracji spadnie poniżej zadanego progu precyzji $epsilon = 0.0001$. Oznacza to, że układ osiągnął stabilność i wierzchołki znalazły swoje docelowe miejsca.
+*Warunek stopu:* Algorytm Tutte kończy działanie, gdy spełniony zostanie jeden z dwóch warunków:
+- maksymalne przesunięcie wierzchołka w danej iteracji spadnie poniżej zadanego progu precyzji $epsilon = 0.0001$ (układ osiągnął stabilność) 
+- liczba wykonanych iteracji osiągnie górny limit określony flagą `--iterations` (domyślnie 1000), co stanowi bezpiecznik w przypadku problemów ze zbieżnością.
 
 === Funkcjonalne właściwości rozwiązania
 
-Zastosowanie powyższej metody gwarantuje użytkownikowi uzyskanie wyników o następujących cechach:
+Zastosowanie powyższej metody gwarantuje następujące cechy:
 
-*Domknięcie wypukłe:* Algorytm gwarantuje, że żaden wierzchołek ani krawędź nie znajdzie się poza wyznaczoną ramą kwadratową.
+*Domknięcie wypukłe:* Żaden wierzchołek ani krawędź nie wyjdzie poza ramę kwadratową.
 
-*Wypukłość ścian:* Wszystkie wewnętrzne obszary ograniczone krawędziami zostaną przedstawione jako wielokąty wypukłe, co zapewnia wysoką czytelność i estetykę wizualizacji.
+*Wypukłość ścian:* Wewnętrzne obszary przedstawione jako wielokąty wypukłe.
 
-*Reprezentacja wag:* Wyższe wagi skutkują mniejszą odległością między wierzchołkami, co pozwala na intuicyjną analizę skupisk w grafie.
+*Reprezentacja wag:* Wyższe wagi dają mniejsze odległości między wierzchołkami.
 
-*Determinizm:* Wynik nie jest zależny od żadnych zmiennych losowych, te same argumenty wejściowe zawsze wygenerują identyczny układ współrzędnych.
+*Determinizm:* Te same dane zawsze generują identyczny układ współrzędnych.
 
 = Obsługa błędów
 
@@ -383,6 +397,7 @@ Główne kategorie błędów:
 - `Error: Invalid format: <format>` - nieprawidłowy format wyjściowy
 - `Error: Invalid iteration count` - nieprawidłowa liczba iteracji (musi być > 0)
 - `Error: Invalid temperature value` - nieprawidłowa wartość temperatury
+- `Error: Invalid size value` - nieprawidłowa wartość rozmiaru obszaru (musi być > 0)
 
 *Błędy plików:*
 - `Error: Cannot open input file: <plik>` - nie można otworzyć pliku wejściowego
@@ -391,10 +406,10 @@ Główne kategorie błędów:
 
 *Błędy danych:*
 - `Error: Invalid graph format at line <numer>` - nieprawidłowy format opisu grafu
-- `Error: Duplicate edge: <A>-<B>` - duplikacja krawędzi
-- `Error: Self-loop detected at vertex <v>` - wykryto pętlę własną
+- `Error: Duplicate edge at line <numer>` - duplikacja krawędzi
+- `Error: Self-loop detected at line <numer>` - wykryto pętlę własną
 - `Error: Graph is empty` - graf nie zawiera krawędzi
-- `Error: Graph is not planar` - graf nie jest planarny (dla algorytmu Tutte)
+- `Error: Graph is not planar` - graf nie jest planarny
 
 *Błędy pamięci:*
 - `Error: Memory allocation failed` - brak pamięci
@@ -465,17 +480,7 @@ Plik wejściowy `large.txt`:
 # Większy graf - 10 węzłów, 15 krawędzi
 e1    1   2  1.0
 e2    1   3  1.0
-e3    2   4  1.0
-e4    2   5  1.0
-e5    3   6  1.0
-e6    3   7  1.0
-e7    4   8  1.0
-e8    5   8  1.0
-e9    6   9  1.0
-e10   7   9  1.0
-e11   8  10  1.0
-e12   9  10  1.0
-e13   1   5  1.5
+...
 e14   3   4  1.5
 e15   6   8  1.5
 ```
