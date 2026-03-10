@@ -20,8 +20,10 @@ typedef struct {
 } Graph;
 
 
-void save_graph_as_binary();
-void save_graph_as_text();
-void load_graph();
+Graph* load_graph(char path[]);
+int get_node_index(Graph *graph, int node_id);
+void save_graph_as_binary(Graph *graph, char path[]);
+void save_graph_as_text(Graph *graph, char path[]);
+void free_graph(Graph *graph);
 
 #endif
