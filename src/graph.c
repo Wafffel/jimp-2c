@@ -1,7 +1,7 @@
 #include "graph.h"
 
 void load_graph() {
-    // Load graph data from a file
+    // Load graph data from a file (1)
 }
 
 void save_graph_as_text() {

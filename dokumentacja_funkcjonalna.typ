@@ -402,14 +402,12 @@ Główne kategorie błędów:
 *Błędy plików:*
 - `Error: Cannot open input file: <plik>` - nie można otworzyć pliku wejściowego
 - `Error: Cannot create output file: <plik>` - nie można utworzyć pliku wyjściowego
-- `Error: File read error at line <numer>` - błąd odczytu w linii
 
 *Błędy danych:*
 - `Error: Invalid graph format at line <numer>` - nieprawidłowy format opisu grafu
 - `Error: Duplicate edge at line <numer>` - duplikacja krawędzi
 - `Error: Self-loop detected at line <numer>` - wykryto pętlę własną
 - `Error: Graph is empty` - graf nie zawiera krawędzi
-- `Error: Graph is not planar` - graf nie jest planarny
 
 *Błędy pamięci:*
 - `Error: Memory allocation failed` - brak pamięci
