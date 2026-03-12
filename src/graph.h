@@ -20,10 +20,11 @@ typedef struct {
   int edges_count;
 } Graph;
 
-Graph *load_graph(char path[]);
+int compare_nodes_by_id(const void *a, const void *b);
 int get_node_index(Graph *graph, int node_id);
-void save_graph_as_binary(Graph *graph, char path[]);
-void save_graph_as_text(Graph *graph, char path[]);
-void free_graph(Graph *graph);
+int load_graph(char path[], Graph **graph_out);
+int save_graph_as_binary(Graph *graph, char path[]);
+int save_graph_as_text(Graph *graph, char path[]);
+int free_graph(Graph *graph);
 
 #endif
