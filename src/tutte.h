@@ -1,6 +1,8 @@
 #ifndef TUTTE_H
 #define TUTTE_H
 
-void run_tutte();
+#include "graph.h"
+
+int run_tutte(Graph *graph, double size, int max_iterations);
 
 #endif

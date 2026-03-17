@@ -16,7 +16,7 @@ typedef struct List {
 } List;
 
 int list_contains(List *head, int value);
-void list_prepend(List **head, int value);
+int list_prepend(List **head, int value);
 void list_free(List *head);
 
 #endif

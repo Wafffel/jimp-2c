@@ -4,19 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int compare_nodes_by_id(const void *a, const void *b) {
-  return ((Node *)a)->id - ((Node *)b)->id;
-}
-
-int get_node_index(Graph *graph, int node_id) {
-  Node key;
-  key.id = node_id;
-  Node *result = (Node *)bsearch(&key, graph->nodes, graph->nodes_count,
-                                 sizeof(Node), compare_nodes_by_id);
-  if (result == NULL)
-    return -1;
-  return (int)(result - graph->nodes);
-}
+static int compare_nodes_by_id(const void *a, const void *b);
 
 int load_graph(char path[], Graph **graph_out) {
   FILE *file = fopen(path, "r");
@@ -31,7 +19,6 @@ int load_graph(char path[], Graph **graph_out) {
   int edges_count = 0;
   int nodes_count = 0;
   List *unique_nodes = NULL;
-
   int line_number = 1;
   char c;
   while ((c = fgetc(file)) != EOF) {
@@ -42,8 +29,10 @@ int load_graph(char path[], Graph **graph_out) {
         line_number++;
       continue;
     }
-    if (c == '\n')
+    if (c == '\n') {
       line_number++;
+      continue;
+    }
     if (c == ' ' || c == '\t' || c == '\r')
       continue;
 
@@ -52,11 +41,22 @@ int load_graph(char path[], Graph **graph_out) {
                         &second_node, &weight);
 
     if (result == 4) {
+      while ((c = fgetc(file)) != EOF && c != '\n') {
+        if (c == '#') {
+          while ((c = fgetc(file)) != EOF && c != '\n')
+            continue;
+          break;
+        }
+      }
+      if (c == '\n')
+        line_number++;
+
       edges_count++;
       int ids[2] = {first_node, second_node};
       for (int i = 0; i < 2; i++) {
-        if (!list_contains(unique_nodes, ids[i])) {
-          list_prepend(&unique_nodes, ids[i]);
+        int node_id = ids[i];
+        if (!list_contains(unique_nodes, node_id)) {
+          list_prepend(&unique_nodes, node_id);
           nodes_count++;
         }
       }
@@ -95,23 +95,38 @@ int load_graph(char path[], Graph **graph_out) {
     node_index++;
   }
   list_free(unique_nodes);
+  unique_nodes = NULL;
 
   qsort(graph->nodes, graph->nodes_count, sizeof(Node), compare_nodes_by_id);
 
   rewind(file);
   int edge_index = 0;
+  line_number = 1;
   while ((c = fgetc(file)) != EOF) {
     if (c == '#') {
       while ((c = fgetc(file)) != EOF && c != '\n')
         continue;
+      line_number++;
       continue;
     }
-    if (c == '\n' || c == ' ' || c == '\t' || c == '\r')
+    if (c == '\n') {
+      line_number++;
+      continue;
+    }
+    if (c == ' ' || c == '\t' || c == '\r')
       continue;
 
     ungetc(c, file);
     if (fscanf(file, "%32s %d %d %lf", label, &first_node, &second_node,
                &weight) == 4) {
+      while ((c = fgetc(file)) != EOF && c != '\n') {
+        if (c == '#') {
+          while ((c = fgetc(file)) != EOF && c != '\n')
+            continue;
+          break;
+        }
+      }
+
       graph->edges[edge_index].first_node_index =
           get_node_index(graph, first_node);
       graph->edges[edge_index].second_node_index =
@@ -134,9 +149,10 @@ int save_graph_as_text(Graph *graph, char path[]) {
     fprintf(stderr, "Error: Cannot create output file: %s\n", path);
     return FILE_ERROR;
   }
-  for (int i = 0; i < graph->nodes_count; i++)
+  for (int i = 0; i < graph->nodes_count; i++) {
     fprintf(file, "%d %lf %lf\n", graph->nodes[i].id, graph->nodes[i].x,
             graph->nodes[i].y);
+  }
   fclose(file);
   return SUCCESS;
 }
@@ -159,8 +175,25 @@ int save_graph_as_binary(Graph *graph, char path[]) {
 int free_graph(Graph *graph) {
   if (graph == NULL)
     return SUCCESS;
-  free(graph->nodes);
-  free(graph->edges);
+  if (graph->nodes != NULL)
+    free(graph->nodes);
+  if (graph->edges != NULL)
+    free(graph->edges);
   free(graph);
   return SUCCESS;
+}
+
+int get_node_index(Graph *graph, int node_id) {
+  Node key = {.id = node_id, .x = 0.0, .y = 0.0};
+  Node *result = (Node *)bsearch(&key, graph->nodes, graph->nodes_count,
+                                 sizeof(Node), compare_nodes_by_id);
+  if (result == NULL)
+    return -1;
+  return (int)(result - graph->nodes);
+}
+
+static int compare_nodes_by_id(const void *a, const void *b) {
+  const Node *node_a = (const Node *)a;
+  const Node *node_b = (const Node *)b;
+  return node_a->id - node_b->id;
 }
