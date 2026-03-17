@@ -88,3 +88,68 @@ void test_load_graph_format_error() {
   remove(path);
   printf("PASSED\n");
 }
+
+void test_load_graph_with_comments() {
+  printf("Testing load_graph with line comments... ");
+  const char *path = "test_comments.txt";
+  create_dummy_file(path, "# Header comment\n"
+                          "L1 1 2 1.5\n"
+                          "# Middle comment\n"
+                          "L2 2 3 0.5\n"
+                          "# End comment\n");
+
+  Graph *g = NULL;
+  int status = load_graph((char *)path, &g);
+
+  assert(status == SUCCESS);
+  assert(g != NULL);
+  assert(g->nodes_count == 3);
+  assert(g->edges_count == 2);
+
+  free_graph(g);
+  remove(path);
+  printf("PASSED\n");
+}
+
+void test_load_graph_with_inline_comments() {
+  printf("Testing load_graph with inline comments... ");
+  const char *path = "test_inline_comments.txt";
+  create_dummy_file(path, "L1 1 2 1.5 # Comment after data\n"
+                          "L2 2 3 0.5 # Another comment\n"
+                          "L3 3 4 2.0 # Third comment\n");
+
+  Graph *g = NULL;
+  int status = load_graph((char *)path, &g);
+
+  assert(status == SUCCESS);
+  assert(g != NULL);
+  assert(g->nodes_count == 4);
+  assert(g->edges_count == 3);
+  assert(g->edges[0].weight == 1.5);
+
+  free_graph(g);
+  remove(path);
+  printf("PASSED\n");
+}
+
+void test_load_graph_with_mixed_comments() {
+  printf("Testing load_graph with mixed comments... ");
+  const char *path = "test_mixed_comments.txt";
+  create_dummy_file(path, "# Start\n"
+                          "L1 1 2 1.0 # inline\n"
+                          "# between\n"
+                          "L2 2 3 2.0\n"
+                          "L3 3 1 1.5 # end inline\n");
+
+  Graph *g = NULL;
+  int status = load_graph((char *)path, &g);
+
+  assert(status == SUCCESS);
+  assert(g != NULL);
+  assert(g->nodes_count == 3);
+  assert(g->edges_count == 3);
+
+  free_graph(g);
+  remove(path);
+  printf("PASSED\n");
+}
