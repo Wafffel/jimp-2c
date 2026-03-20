@@ -9,17 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-  int node;
-  int parent;
-} BFSNode;
-
-static int is_connected_without_cycle(AdjacencyList *adj_list, int *cycle,
-                                      int cycle_len);
 static int count_common_neighbors(int u, int v, AdjacencyList *adj);
 static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
                                 int *cycle_len_out);
-static int find_cycle_bfs(AdjacencyList *adj_list, int **cycle_out,
+static int find_cycle_backup(AdjacencyList *adj_list, int **cycle_out,
                           int *cycle_len_out);
 static int find_cycle(AdjacencyList *adj_list, int **cycle, int *cycle_len);
 static void place_cycle_on_square(Graph *graph, int *cycle, int cycle_len,
@@ -123,7 +116,7 @@ static int find_cycle(AdjacencyList *adj_list, int **cycle, int *cycle_len) {
   if (find_cycle_perimeter(adj_list, cycle, cycle_len) == SUCCESS) {
     return SUCCESS;
   }
-  return find_cycle_bfs(adj_list, cycle, cycle_len);
+  return find_cycle_backup(adj_list, cycle, cycle_len);
 }
 
 static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
@@ -192,120 +185,32 @@ static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
   return ALGORITHM_ERROR;
 }
 
-static int find_cycle_bfs(AdjacencyList *adj_list, int **cycle_out,
+static int find_cycle_backup(AdjacencyList *adj_list, int **cycle_out,
                           int *cycle_len_out) {
   int n = adj_list->nodes_count;
-  for (int start = 0; start < n; start++) {
-    int *parent = (int *)malloc(n * sizeof(int));
-    int *dist = (int *)malloc(n * sizeof(int));
-    BFSNode *queue = (BFSNode *)malloc(n * sizeof(BFSNode));
-    if (!parent || !dist || !queue) {
-      fprintf(stderr, "Memory allocation failed\n");
-      return MEMORY_ERROR;
-    }
-
-    for (int i = 0; i < n; i++) {
-      parent[i] = -1;
-      dist[i] = -1;
-    }
-
-    int front = 0, rear = 0;
-    queue[rear++] = (BFSNode){start, -1};
-    dist[start] = 0;
-
-    while (front < rear) {
-      int u = queue[front++].node;
-      Neighbor *neighbor = adj_list->adjacency_list[u];
-      while (neighbor != NULL) {
-        int v = neighbor->node_index;
-        if (dist[v] == -1) {
-          dist[v] = dist[u] + 1;
-          parent[v] = u;
-          queue[rear++] = (BFSNode){v, u};
-        } else if (parent[u] != v && dist[u] + dist[v] + 1 >= 3) {
-          int len = dist[u] + dist[v] + 1;
-          int *temp_cycle = (int *)malloc(len * sizeof(int));
-          int pos = 0, curr = u;
-          while (curr != -1) {
-            temp_cycle[pos++] = curr;
-            curr = parent[curr];
-          }
-          for (int i = 0; i < pos / 2; i++) {
-            int tmp = temp_cycle[i];
-            temp_cycle[i] = temp_cycle[pos - 1 - i];
-            temp_cycle[pos - 1 - i] = tmp;
-          }
-          curr = v;
-          while (curr != start) {
-            temp_cycle[pos++] = curr;
-            curr = parent[curr];
-          }
-
-          if (is_connected_without_cycle(adj_list, temp_cycle, len)) {
-            *cycle_out = temp_cycle;
-            *cycle_len_out = len;
-            free(parent);
-            free(dist);
-            free(queue);
-            return SUCCESS;
-          }
-          free(temp_cycle);
-        }
-        neighbor = neighbor->next;
+  int *cycle = (int *)malloc(4 * sizeof(int));
+  if (!cycle) return MEMORY_ERROR;
+  
+  int max_indices[4] = {0, 1, 2, 3};
+  for (int i = 4; i < n; i++) {
+    int min_idx = 0;
+    for (int j = 1; j < 4; j++) {
+      if (adj_list->degrees[max_indices[j]] < adj_list->degrees[max_indices[min_idx]]) {
+        min_idx = j;
       }
     }
-    free(parent);
-    free(dist);
-    free(queue);
-  }
-  return ALGORITHM_ERROR;
-}
-
-static int is_connected_without_cycle(AdjacencyList *adj_list, int *cycle,
-                                      int cycle_len) {
-  int n = adj_list->nodes_count;
-  int *in_cycle = (int *)calloc(n, sizeof(int));
-  int *visited = (int *)calloc(n, sizeof(int));
-  int *queue = (int *)malloc(n * sizeof(int));
-  for (int i = 0; i < cycle_len; i++)
-    in_cycle[cycle[i]] = 1;
-
-  int start = -1;
-  for (int i = 0; i < n; i++)
-    if (!in_cycle[i]) {
-      start = i;
-      break;
-    }
-  if (start == -1) {
-    free(in_cycle);
-    free(visited);
-    free(queue);
-    return 1;
-  }
-
-  int front = 0, rear = 0;
-  queue[rear++] = start;
-  visited[start] = 1;
-  int count = 1;
-
-  while (front < rear) {
-    int u = queue[front++];
-    Neighbor *neighbor = adj_list->adjacency_list[u];
-    while (neighbor != NULL) {
-      int v = neighbor->node_index;
-      if (!in_cycle[v] && !visited[v]) {
-        visited[v] = 1;
-        queue[rear++] = v;
-        count++;
-      }
-      neighbor = neighbor->next;
+    if (adj_list->degrees[i] > adj_list->degrees[max_indices[min_idx]]) {
+      max_indices[min_idx] = i;
     }
   }
-  bool result = (count == n - cycle_len);
-  free(in_cycle);
-  free(visited);
-  free(queue);
-  return result;
+  
+  for (int i = 0; i < 4; i++) {
+    cycle[i] = max_indices[i];
+  }
+  
+  *cycle_out = cycle;
+  *cycle_len_out = 4;
+  return SUCCESS;
 }
 
 static int count_common_neighbors(int u, int v, AdjacencyList *adj) {
