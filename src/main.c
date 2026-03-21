@@ -27,18 +27,33 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--iterations") == 0)
         {
-            if (i + 1 < argc)
+            if (i + 1 < argc && atoi(argv[i + 1]) > 0)
                 iterations = atoi(argv[i + 1]);
+            else if (i + 1 < argc && atoi(argv[i + 1] <= 0))
+            {
+                fprintf(stderr, "Error: Iterations must be a positive integer.\n");
+                return ARGUMENTS_ERROR;
+            }
         }
         else if (strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--temperature") == 0)
         {
-            if (i + 1 < argc)
+            if (i + 1 < argc && atof(argv[i + 1]) > 0)
                 temperature = atof(argv[i + 1]);
+            else if (i + 1 < argc && atof(argv[i + 1]) <= 0)
+            {
+                fprintf(stderr, "Error: Temperature must be a positive number.\n");
+                return ARGUMENTS_ERROR;
+            }
         }
         else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--size") == 0)
         {
-            if (i + 1 < argc)
+            if (i + 1 < argc && atof(argv[i + 1]) > 0)
                 size = atof(argv[i + 1]);
+            else if (i + 1 < argc && atof(argv[i + 1]) <= 0)
+            {
+                fprintf(stderr, "Error: Size must be a positive number.\n");
+                return ARGUMENTS_ERROR;
+            }
         }
         else if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--format") == 0)
         {
