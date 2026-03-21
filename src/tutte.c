@@ -13,7 +13,7 @@ static int count_common_neighbors(int u, int v, AdjacencyList *adj);
 static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
                                 int *cycle_len_out);
 static int find_cycle_backup(AdjacencyList *adj_list, int **cycle_out,
-                          int *cycle_len_out);
+                             int *cycle_len_out);
 static int find_cycle(AdjacencyList *adj_list, int **cycle, int *cycle_len);
 static void place_cycle_on_square(Graph *graph, int *cycle, int cycle_len,
                                   double size);
@@ -29,7 +29,7 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
   AdjacencyList *adj_list;
   status = create_adjacency_list(graph, &adj_list);
   if (status != SUCCESS) {
-    fprintf(stderr, "Mamory allocation failed\n");
+    fprintf(stderr, "Error: Mamory allocation failed\n");
     return status;
   }
 
@@ -48,7 +48,7 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
   if (is_cycle == NULL) {
     free(cycle);
     free_adjacency_list(adj_list);
-    fprintf(stderr, "Memory allocation failed\n");
+    fprintf(stderr, "Error: Memory allocation failed\n");
     return MEMORY_ERROR;
   }
 
@@ -113,10 +113,9 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
 }
 
 static int find_cycle(AdjacencyList *adj_list, int **cycle, int *cycle_len) {
-  if (find_cycle_perimeter(adj_list, cycle, cycle_len) == SUCCESS) {
-    return SUCCESS;
-  }
-  return find_cycle_backup(adj_list, cycle, cycle_len);
+  return (find_cycle_perimeter(adj_list, cycle, cycle_len) == SUCCESS)
+             ? SUCCESS
+             : find_cycle_backup(adj_list, cycle, cycle_len);
 }
 
 static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
@@ -186,16 +185,18 @@ static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
 }
 
 static int find_cycle_backup(AdjacencyList *adj_list, int **cycle_out,
-                          int *cycle_len_out) {
+                             int *cycle_len_out) {
   int n = adj_list->nodes_count;
   int *cycle = (int *)malloc(4 * sizeof(int));
-  if (!cycle) return MEMORY_ERROR;
-  
+  if (!cycle)
+    return MEMORY_ERROR;
+
   int max_indices[4] = {0, 1, 2, 3};
   for (int i = 4; i < n; i++) {
     int min_idx = 0;
     for (int j = 1; j < 4; j++) {
-      if (adj_list->degrees[max_indices[j]] < adj_list->degrees[max_indices[min_idx]]) {
+      if (adj_list->degrees[max_indices[j]] <
+          adj_list->degrees[max_indices[min_idx]]) {
         min_idx = j;
       }
     }
@@ -203,11 +204,11 @@ static int find_cycle_backup(AdjacencyList *adj_list, int **cycle_out,
       max_indices[min_idx] = i;
     }
   }
-  
+
   for (int i = 0; i < 4; i++) {
     cycle[i] = max_indices[i];
   }
-  
+
   *cycle_out = cycle;
   *cycle_len_out = 4;
   return SUCCESS;
@@ -254,20 +255,15 @@ static void place_cycle_on_square(Graph *graph, int *cycle, int cycle_len,
 }
 
 static void handle_graph_below_four_nodes(Graph *graph, double size) {
-  if (graph->nodes_count == 1) {
-    graph->nodes[0].x = size / 2.0;
-    graph->nodes[0].y = size / 2.0;
-  } else if (graph->nodes_count == 2) {
-    graph->nodes[0].x = 0.0;
-    graph->nodes[0].y = 0.0;
-    graph->nodes[1].x = size;
-    graph->nodes[1].y = size;
-  } else if (graph->nodes_count == 3) {
-    graph->nodes[0].x = 0.0;
-    graph->nodes[0].y = 0.0;
-    graph->nodes[1].x = size;
-    graph->nodes[1].y = 0.0;
-    graph->nodes[2].x = size / 2.0;
-    graph->nodes[2].y = size;
+  double coords[][2] = {{size / 2.0, size / 2.0},
+                        {0.0, 0.0},
+                        {size, size},
+                        {0.0, 0.0},
+                        {size, 0.0},
+                        {size / 2.0, size}};
+  int start = (graph->nodes_count == 1) ? 0 : (graph->nodes_count == 2) ? 1 : 3;
+  for (int i = 0; i < graph->nodes_count; i++) {
+    graph->nodes[i].x = coords[start + i][0];
+    graph->nodes[i].y = coords[start + i][1];
   }
 }
