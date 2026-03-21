@@ -50,16 +50,30 @@ int main(int argc, char *argv[]) {
           "  -f, --format <format>         Format wyjściowy (text, binary)\n"
           "  -h, --help                    Wyświetlenie tej pomocy\n");
       return SUCCESS;
+    } else if (input_file == NULL && i == argc - 2) {
+      input_file = argv[i];
+    } else if (output_file == NULL && i == argc - 1) {
+      output_file = argv[i];
     } else {
-      if (input_file == NULL)
-        input_file = argv[i];
-      else if (output_file == NULL)
-        output_file = argv[i];
+      fprintf(stderr, "Error: Unknown option '%s'\n", argv[i]);
+      return ARGUMENTS_ERROR;
     }
   }
 
   if (input_file == NULL || output_file == NULL) {
     fprintf(stderr, "Error: Input and output files must be specified.\n");
+    return ARGUMENTS_ERROR;
+  }
+  if (iterations <= 0) {
+    fprintf(stderr, "Error: Invalid iteration value\n");
+    return ARGUMENTS_ERROR;
+  }
+  if (temperature <= 0) {
+    fprintf(stderr, "Error: Invalid temperature value\n");
+    return ARGUMENTS_ERROR;
+  }
+  if (size <= 0) {
+    fprintf(stderr, "Error: Invalid size value\n");
     return ARGUMENTS_ERROR;
   }
 
