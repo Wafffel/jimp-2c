@@ -13,6 +13,10 @@ static double random_double(double min, double max)
 
 int run_fruchterman(Graph *graph, double initial_temperature, int max_iterations, double size)
 {
+        if (graph == NULL || graph->nodes_count <= 0)
+        {
+                return SUCCESS;
+        }
         int liczba_w = graph->nodes_count;
         int liczba_k = graph->edges_count;
         if (liczba_w == 0 || liczba_k == 0)

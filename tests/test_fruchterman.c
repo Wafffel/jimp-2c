@@ -9,7 +9,7 @@
 // pusty graf
 void test_fruchterman_empty_graph()
 {
-    printf("Testujemy pusty graf...\n");
+    printf("Testing Fruchterman with empty graph...\n");
     Graph *graph = (Graph *)malloc(sizeof(Graph));
     graph->nodes = NULL;
     graph->nodes_count = 0;
@@ -20,12 +20,12 @@ void test_fruchterman_empty_graph()
 
     assert(result == SUCCESS);
     free(graph);
-    printf("Test pustego grafu zakończony sukcesem.\n");
+    printf("PASSED\n");
 }
 // mały graf
 void test_fruchterman_small_graph()
 {
-    printf("Testujemy mały graf...\n");
+    printf("Testing Fruchterman with small graph...\n");
     Graph *graph = (Graph *)malloc(sizeof(Graph));
     graph->nodes_count = 3;
     graph->edges_count = 2;
@@ -62,5 +62,5 @@ void test_fruchterman_small_graph()
     free(graph->nodes);
     free(graph->edges);
     free(graph);
-    printf("Test małego grafu zakończony sukcesem.\n");
+    printf("PASSED\n");
 }
