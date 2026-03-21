@@ -5,6 +5,7 @@
 #include <string.h>
 
 static int compare_nodes_by_id(const void *a, const void *b);
+static void skip_whitespace_and_comments(FILE *file, char *c, int *line_number);
 
 int load_graph(char path[], Graph **graph_out) {
   FILE *file = fopen(path, "r");
@@ -21,19 +22,10 @@ int load_graph(char path[], Graph **graph_out) {
   List *unique_nodes = NULL;
   int line_number = 1;
   char c;
+
   while ((c = fgetc(file)) != EOF) {
-    if (c == '#') {
-      while ((c = fgetc(file)) != EOF && c != '\n')
-        continue;
-      if (c == '\n')
-        line_number++;
-      continue;
-    }
-    if (c == '\n') {
-      line_number++;
-      continue;
-    }
-    if (c == ' ' || c == '\t' || c == '\r')
+    skip_whitespace_and_comments(file, &c, &line_number);
+    if (c == EOF)
       continue;
 
     ungetc(c, file);
@@ -41,15 +33,8 @@ int load_graph(char path[], Graph **graph_out) {
                         &second_node, &weight);
 
     if (result == 4) {
-      while ((c = fgetc(file)) != EOF && c != '\n') {
-        if (c == '#') {
-          while ((c = fgetc(file)) != EOF && c != '\n')
-            continue;
-          break;
-        }
-      }
-      if (c == '\n')
-        line_number++;
+      c = fgetc(file);
+      skip_whitespace_and_comments(file, &c, &line_number);
 
       edges_count++;
       int ids[2] = {first_node, second_node};
@@ -103,29 +88,15 @@ int load_graph(char path[], Graph **graph_out) {
   int edge_index = 0;
   line_number = 1;
   while ((c = fgetc(file)) != EOF) {
-    if (c == '#') {
-      while ((c = fgetc(file)) != EOF && c != '\n')
-        continue;
-      line_number++;
-      continue;
-    }
-    if (c == '\n') {
-      line_number++;
-      continue;
-    }
-    if (c == ' ' || c == '\t' || c == '\r')
+    skip_whitespace_and_comments(file, &c, &line_number);
+    if (c == EOF)
       continue;
 
     ungetc(c, file);
     if (fscanf(file, "%32s %d %d %lf", label, &first_node, &second_node,
                &weight) == 4) {
-      while ((c = fgetc(file)) != EOF && c != '\n') {
-        if (c == '#') {
-          while ((c = fgetc(file)) != EOF && c != '\n')
-            continue;
-          break;
-        }
-      }
+      c = fgetc(file);
+      skip_whitespace_and_comments(file, &c, &line_number);
 
       graph->edges[edge_index].first_node_index =
           get_node_index(graph, first_node);
@@ -175,10 +146,8 @@ int save_graph_as_binary(Graph *graph, char path[]) {
 int free_graph(Graph *graph) {
   if (graph == NULL)
     return SUCCESS;
-  if (graph->nodes != NULL)
-    free(graph->nodes);
-  if (graph->edges != NULL)
-    free(graph->edges);
+  free(graph->nodes);
+  free(graph->edges);
   free(graph);
   return SUCCESS;
 }
@@ -196,4 +165,19 @@ static int compare_nodes_by_id(const void *a, const void *b) {
   const Node *node_a = (const Node *)a;
   const Node *node_b = (const Node *)b;
   return node_a->id - node_b->id;
+}
+
+static void skip_whitespace_and_comments(FILE *file, char *c,
+                                         int *line_number) {
+  while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') {
+    if (*c == '\n')
+      (*line_number)++;
+    *c = fgetc(file);
+  }
+  if (*c == '#') {
+    while ((*c = fgetc(file)) != EOF && *c != '\n')
+      continue;
+    if (*c == '\n')
+      (*line_number)++;
+  }
 }

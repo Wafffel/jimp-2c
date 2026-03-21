@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int add_neighbor(Neighbor **list, int node_index, double weight);
+
 int create_adjacency_list(Graph *graph, AdjacencyList **adj_list_out) {
   AdjacencyList *adj_list = (AdjacencyList *)malloc(sizeof(AdjacencyList));
   if (adj_list == NULL) {
@@ -27,28 +29,15 @@ int create_adjacency_list(Graph *graph, AdjacencyList **adj_list_out) {
     int second_index = graph->edges[i].second_node_index;
     double weight = graph->edges[i].weight;
 
-    Neighbor *neighbor1 = (Neighbor *)malloc(sizeof(Neighbor));
-    if (neighbor1 == NULL) {
+    if (add_neighbor(&adj_list->adjacency_list[first_index], second_index,
+                     weight) != SUCCESS ||
+        add_neighbor(&adj_list->adjacency_list[second_index], first_index,
+                     weight) != SUCCESS) {
       free_adjacency_list(adj_list);
       fprintf(stderr, "Error: Memory allocation failed\n");
       return MEMORY_ERROR;
     }
-    neighbor1->node_index = second_index;
-    neighbor1->weight = weight;
-    neighbor1->next = adj_list->adjacency_list[first_index];
-    adj_list->adjacency_list[first_index] = neighbor1;
     adj_list->degrees[first_index]++;
-
-    Neighbor *neighbor2 = (Neighbor *)malloc(sizeof(Neighbor));
-    if (neighbor2 == NULL) {
-      free_adjacency_list(adj_list);
-      fprintf(stderr, "Error: Memory allocation failed\n");
-      return MEMORY_ERROR;
-    }
-    neighbor2->node_index = first_index;
-    neighbor2->weight = weight;
-    neighbor2->next = adj_list->adjacency_list[second_index];
-    adj_list->adjacency_list[second_index] = neighbor2;
     adj_list->degrees[second_index]++;
   }
 
@@ -74,4 +63,16 @@ void free_adjacency_list(AdjacencyList *adj_list) {
 
   free(adj_list->degrees);
   free(adj_list);
+}
+
+static int add_neighbor(Neighbor **list, int node_index, double weight) {
+  Neighbor *neighbor = (Neighbor *)malloc(sizeof(Neighbor));
+  if (neighbor == NULL) {
+    return MEMORY_ERROR;
+  }
+  neighbor->node_index = node_index;
+  neighbor->weight = weight;
+  neighbor->next = *list;
+  *list = neighbor;
+  return SUCCESS;
 }
