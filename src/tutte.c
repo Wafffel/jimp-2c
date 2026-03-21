@@ -19,6 +19,7 @@ static void place_cycle_on_square(Graph *graph, int *cycle, int cycle_len,
                                   double size);
 static void handle_graph_below_four_nodes(Graph *graph, double size);
 
+// Algorytm Tutte'a: osadzenie grafów planarnych z brzegiem na kwadracie
 int run_tutte(Graph *graph, double size, int max_iterations) {
   int status;
   if (graph->nodes_count < 4) {
@@ -36,12 +37,14 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
   int *cycle = NULL;
   int cycle_len = 0;
 
+  // Znajdowanie cyklu brzegowego (zewnętrzna ściana grafu planarnego)
   status = find_cycle(adj_list, &cycle, &cycle_len);
   if (status != SUCCESS) {
     free_adjacency_list(adj_list);
     return status;
   }
 
+  // Umieszczenie wierzchołków cyklu na brzegu kwadratu
   place_cycle_on_square(graph, cycle, cycle_len, size);
 
   bool *is_cycle = (bool *)calloc(graph->nodes_count, sizeof(bool));
@@ -56,6 +59,7 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
     is_cycle[cycle[i]] = true;
   }
 
+  // Inicjalizacja wierzchołków wewnętrznych na środku kwadratu
   for (int i = 0; i < graph->nodes_count; i++) {
     if (!is_cycle[i]) {
       graph->nodes[i].x = size / 2.0;
@@ -63,6 +67,7 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
     }
   }
 
+  // Iteracyjna relaksacja: każdy wewnętrzny wierzchołek staje się środkiem ciężkości sąsiadów
   const double epsilon = 0.0001;
   for (int iter = 0; iter < max_iterations; iter++) {
     double max_displacement = 0.0;
@@ -75,6 +80,7 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
       double sum_weighted_y = 0.0;
       double sum_weights = 0.0;
 
+      // Obliczanie ważonego środka ciężkości sąsiadów
       Neighbor *neighbor = adj_list->adjacency_list[i];
       while (neighbor != NULL) {
         int neighbor_idx = neighbor->node_index;
@@ -102,6 +108,7 @@ int run_tutte(Graph *graph, double size, int max_iterations) {
         graph->nodes[i].y = new_y;
       }
     }
+    // Zbieżność: zakończ gdy przesunięcia są bardzo małe
     if (max_displacement < epsilon)
       break;
   }
@@ -118,9 +125,11 @@ static int find_cycle(AdjacencyList *adj_list, int **cycle, int *cycle_len) {
              : find_cycle_backup(adj_list, cycle, cycle_len);
 }
 
+// Heurystyczne szukanie cyklu na brzegu grafu (próba znalezienia zewnętrznej ściany)
 static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
                                 int *cycle_len_out) {
   int n = adj_list->nodes_count;
+  // Rozpoczynamy od wierzchołka o najmniejszym stopniu (prawdopodobnie na brzegu)
   int start_node = 0;
   int min_deg = adj_list->degrees[0];
   for (int i = 1; i < n; i++) {
@@ -141,6 +150,7 @@ static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
     int best_next = -1, min_common = INT_MAX, min_deg_val = INT_MAX;
     bool found = false;
 
+    // Sprawdzanie zamknięcia cyklu po zebraniu przynajmniej 4 wierzchołków
     if (count > 4) {
       Neighbor *check = adj_list->adjacency_list[current];
       while (check) {
@@ -153,6 +163,7 @@ static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
       }
     }
 
+    // Wybór kolejnego wierzchołka: preferujemy najmniejszą liczbę wspólnych sąsiadów
     Neighbor *neighbor = adj_list->adjacency_list[current];
     while (neighbor != NULL) {
       int v = neighbor->node_index;
@@ -184,6 +195,7 @@ static int find_cycle_perimeter(AdjacencyList *adj_list, int **cycle_out,
   return ALGORITHM_ERROR;
 }
 
+// Fallback: jeśli nie można znaleźć cyklu brzegowego, wybieramy 4 wierzchołki o najwyższych stopniach
 static int find_cycle_backup(AdjacencyList *adj_list, int **cycle_out,
                              int *cycle_len_out) {
   int n = adj_list->nodes_count;
@@ -229,6 +241,7 @@ static int count_common_neighbors(int u, int v, AdjacencyList *adj) {
   return common;
 }
 
+// Rozmieszczenie wierzchołków cyklu równomiernie na brzegu kwadratu
 static void place_cycle_on_square(Graph *graph, int *cycle, int cycle_len,
                                   double size) {
   double perimeter = 4.0 * size;
@@ -236,6 +249,7 @@ static void place_cycle_on_square(Graph *graph, int *cycle, int cycle_len,
   for (int i = 0; i < cycle_len; i++) {
     double pos = i * step;
     double x, y;
+    // Mapowanie pozycji na obwód kwadratu (clockwise od lewego dolnego rogu)
     if (pos < size) {
       x = pos;
       y = 0.0;

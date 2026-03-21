@@ -24,6 +24,7 @@ int create_adjacency_list(Graph *graph, AdjacencyList **adj_list_out) {
     return MEMORY_ERROR;
   }
 
+  // Dla każdej krawędzi dodajemy obie relacje (graf nieskierowany)
   for (int i = 0; i < graph->edges_count; i++) {
     int first_index = graph->edges[i].first_node_index;
     int second_index = graph->edges[i].second_node_index;

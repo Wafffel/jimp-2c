@@ -7,6 +7,7 @@
 #include <string.h>
 
 int main(int argc, char *argv[]) {
+  // Domyślne wartości parametrów
   char *input_file = NULL;
   char *output_file = NULL;
   char *algorithm = "fruchterman";
@@ -15,6 +16,7 @@ int main(int argc, char *argv[]) {
   double temperature = 10.0;
   double size = 1000.0;
 
+  // Parsowanie argumentów wiersza poleceń
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--algorithm") == 0) {
       if (++i < argc)
@@ -66,6 +68,8 @@ int main(int argc, char *argv[]) {
   if (status != SUCCESS) {
     return status;
   }
+
+  // Uruchomienie wybranego algorytmu layoutu grafu
   if (strcmp(algorithm, "fruchterman") == 0) {
     status = run_fruchterman(graph, temperature, iterations, size);
   } else if (strcmp(algorithm, "tutte") == 0) {

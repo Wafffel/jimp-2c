@@ -23,6 +23,7 @@ int load_graph(char path[], Graph **graph_out) {
   int line_number = 1;
   char c;
 
+  // Pierwsze przejście: zliczanie krawędzi i identyfikacja unikalnych wierzchołków
   while ((c = fgetc(file)) != EOF) {
     skip_whitespace_and_comments(file, &c, &line_number);
     if (c == EOF)
@@ -77,8 +78,10 @@ int load_graph(char path[], Graph **graph_out) {
   list_free(unique_nodes);
   unique_nodes = NULL;
 
+  // Sortowanie wierzchołków po ID umożliwia szybkie wyszukiwanie binarne
   qsort(graph->nodes, graph->nodes_count, sizeof(Node), compare_nodes_by_id);
 
+  // Drugie przejście: wczytywanie krawędzi i mapowanie ID wierzchołków na indeksy
   rewind(file);
   int edge_index = 0;
   line_number = 1;
@@ -153,6 +156,7 @@ static int compare_nodes_by_id(const void *a, const void *b) {
   return ((Node *)a)->id - ((Node *)b)->id;
 }
 
+// Pomija białe znaki i komentarze w pliku wejściowym (linie zaczynające się od #)
 static void skip_whitespace_and_comments(FILE *file, char *c,
                                          int *line_number) {
   while (*c != EOF) {
