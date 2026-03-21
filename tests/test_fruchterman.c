@@ -9,7 +9,7 @@
 // pusty graf
 void test_fruchterman_empty_graph()
 {
-    printf("Testing Fruchterman with empty graph...\n");
+    printf("Testing Fruchterman with empty graph... ");
     Graph *graph = (Graph *)malloc(sizeof(Graph));
     graph->nodes = NULL;
     graph->nodes_count = 0;
@@ -25,7 +25,7 @@ void test_fruchterman_empty_graph()
 // mały graf
 void test_fruchterman_small_graph()
 {
-    printf("Testing Fruchterman with small graph...\n");
+    printf("Testing Fruchterman with small graph... ");
     Graph *graph = (Graph *)malloc(sizeof(Graph));
     graph->nodes_count = 3;
     graph->edges_count = 2;

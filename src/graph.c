@@ -26,22 +26,18 @@ int load_graph(char path[], Graph **graph_out) {
   while ((c = fgetc(file)) != EOF) {
     skip_whitespace_and_comments(file, &c, &line_number);
     if (c == EOF)
-      continue;
+      break;
 
     ungetc(c, file);
     int result = fscanf(file, "%32s %d %d %lf", label, &first_node,
                         &second_node, &weight);
 
     if (result == 4) {
-      c = fgetc(file);
-      skip_whitespace_and_comments(file, &c, &line_number);
-
       edges_count++;
       int ids[2] = {first_node, second_node};
       for (int i = 0; i < 2; i++) {
-        int node_id = ids[i];
-        if (!list_contains(unique_nodes, node_id)) {
-          list_prepend(&unique_nodes, node_id);
+        if (!list_contains(unique_nodes, ids[i])) {
+          list_prepend(&unique_nodes, ids[i]);
           nodes_count++;
         }
       }
@@ -54,7 +50,7 @@ int load_graph(char path[], Graph **graph_out) {
 
   Graph *graph = (Graph *)malloc(sizeof(Graph));
   if (graph == NULL) {
-    fprintf(stderr, "Error: Memory allocation failed\n");
+    list_free(unique_nodes);
     fclose(file);
     return MEMORY_ERROR;
   }
@@ -65,7 +61,6 @@ int load_graph(char path[], Graph **graph_out) {
   graph->edges = (Edge *)malloc(edges_count * sizeof(Edge));
 
   if (graph->nodes == NULL || graph->edges == NULL) {
-    fprintf(stderr, "Error: Memory allocation failed\n");
     free_graph(graph);
     list_free(unique_nodes);
     fclose(file);
@@ -90,14 +85,11 @@ int load_graph(char path[], Graph **graph_out) {
   while ((c = fgetc(file)) != EOF) {
     skip_whitespace_and_comments(file, &c, &line_number);
     if (c == EOF)
-      continue;
+      break;
 
     ungetc(c, file);
     if (fscanf(file, "%32s %d %d %lf", label, &first_node, &second_node,
                &weight) == 4) {
-      c = fgetc(file);
-      skip_whitespace_and_comments(file, &c, &line_number);
-
       graph->edges[edge_index].first_node_index =
           get_node_index(graph, first_node);
       graph->edges[edge_index].second_node_index =
@@ -116,10 +108,8 @@ int load_graph(char path[], Graph **graph_out) {
 
 int save_graph_as_text(Graph *graph, char path[]) {
   FILE *file = fopen(path, "w");
-  if (file == NULL) {
-    fprintf(stderr, "Error: Cannot create output file: %s\n", path);
+  if (file == NULL)
     return FILE_ERROR;
-  }
   for (int i = 0; i < graph->nodes_count; i++) {
     fprintf(file, "%d %lf %lf\n", graph->nodes[i].id, graph->nodes[i].x,
             graph->nodes[i].y);
@@ -130,10 +120,8 @@ int save_graph_as_text(Graph *graph, char path[]) {
 
 int save_graph_as_binary(Graph *graph, char path[]) {
   FILE *file = fopen(path, "wb");
-  if (file == NULL) {
-    fprintf(stderr, "Error: Cannot create output file: %s\n", path);
+  if (file == NULL)
     return FILE_ERROR;
-  }
   for (int i = 0; i < graph->nodes_count; i++) {
     fwrite(&graph->nodes[i].id, sizeof(int), 1, file);
     fwrite(&graph->nodes[i].x, sizeof(double), 1, file);
@@ -146,38 +134,38 @@ int save_graph_as_binary(Graph *graph, char path[]) {
 int free_graph(Graph *graph) {
   if (graph == NULL)
     return SUCCESS;
-  free(graph->nodes);
-  free(graph->edges);
+  if (graph->nodes)
+    free(graph->nodes);
+  if (graph->edges)
+    free(graph->edges);
   free(graph);
   return SUCCESS;
 }
 
 int get_node_index(Graph *graph, int node_id) {
-  Node key = {.id = node_id, .x = 0.0, .y = 0.0};
+  Node key = {.id = node_id};
   Node *result = (Node *)bsearch(&key, graph->nodes, graph->nodes_count,
                                  sizeof(Node), compare_nodes_by_id);
-  if (result == NULL)
-    return -1;
-  return (int)(result - graph->nodes);
+  return (result == NULL) ? -1 : (int)(result - graph->nodes);
 }
 
 static int compare_nodes_by_id(const void *a, const void *b) {
-  const Node *node_a = (const Node *)a;
-  const Node *node_b = (const Node *)b;
-  return node_a->id - node_b->id;
+  return ((Node *)a)->id - ((Node *)b)->id;
 }
 
 static void skip_whitespace_and_comments(FILE *file, char *c,
                                          int *line_number) {
-  while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') {
-    if (*c == '\n')
+  while (*c != EOF) {
+    if (*c == ' ' || *c == '\t' || *c == '\r') {
+      *c = fgetc(file);
+    } else if (*c == '\n') {
       (*line_number)++;
-    *c = fgetc(file);
-  }
-  if (*c == '#') {
-    while ((*c = fgetc(file)) != EOF && *c != '\n')
-      continue;
-    if (*c == '\n')
-      (*line_number)++;
+      *c = fgetc(file);
+    } else if (*c == '#') {
+      while ((*c = fgetc(file)) != EOF && *c != '\n')
+        ;
+    } else {
+      break;
+    }
   }
 }
