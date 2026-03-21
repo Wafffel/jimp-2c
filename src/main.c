@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     // Argument parsing here (2)
     for (int i = 1; i < argc; i++)
     {
-        if (strmcp(argv[i], "-a") == 0 || strcmp(argv[i], "--algorithm") == 0)
+        if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--algorithm") == 0)
         {
             if (i + 1 < argc)
                 algorithm = argv[i + 1];
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
         return status;
     }
     // Run the selected graph layout algorithm (Tutte or Fruchterman-Reingold)
-    if (strcmp(algorithm, "frutcherman") == 0)
+    if (strcmp(algorithm, "fruchterman") == 0)
     {
         status = run_fruchterman(graph, temperature, iterations, size);
     }
@@ -104,11 +104,11 @@ int main(int argc, char *argv[])
     // Save the resulting graph layout
     if (strcmp(format, "text") == 0)
     {
-        status = save_graph_text(graph, output_file);
+        status = save_graph_as_text(graph, output_file);
     }
     else if (strcmp(format, "binary") == 0)
     {
-        status = save_graph_binary(graph, output_file);
+        status = save_graph_as_binary(graph, output_file);
     }
     else
     {
