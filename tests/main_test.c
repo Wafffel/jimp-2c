@@ -1,9 +1,11 @@
 #include "test_adjacency_list.h"
 #include "test_graph.h"
 #include "test_tutte.h"
+#include "test_fruchterman.h"
 #include <stdio.h>
 
-void mute_stderr() {
+void mute_stderr()
+{
 #ifdef _WIN32
   freopen("NUL", "w", stderr);
 #else
@@ -11,7 +13,8 @@ void mute_stderr() {
 #endif
 }
 
-int main() {
+int main()
+{
   fprintf(stdout, "Running tests...\n");
 
   mute_stderr();
@@ -30,6 +33,9 @@ int main() {
 
   test_tutte_small_graph();
   test_tutte_complete_graph();
+
+  test_fruchterman_empty_graph();
+  test_fruchterman_small_graph();
 
   fprintf(stdout, "All tests passed!\n");
 
