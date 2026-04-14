@@ -4,7 +4,6 @@
 	numbering: "1",
 )
 
-#set text(
 	lang: "pl",
 	size: 11pt,
 )
