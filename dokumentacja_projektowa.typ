@@ -322,6 +322,7 @@ Uwagi integracyjne:
 
 - plik nie zawiera nagłówka,
 - kolejność rekordów odpowiada kolejności w tablicy `nodes` (po sortowaniu po `id`),
+- dane są bezpośrednim zrzutem z pamięci, bez narzucania przez program koklejności bajtów (domyślnie little-endian na x86_64).
 
 = Szczegółowy opis kodu
 
@@ -339,11 +340,10 @@ Najważniejsze decyzje implementacyjne:
 
 - wymaganie obecności dwóch argumentów pozycyjnych (`input_file`, `output_file`),
 - walidacja `iterations > 0`, `temperature > 0`, `size > 0`,
-- jawna walidacja nazw algorytmu i formatu.
 
 Opis parsera argumentów:
 
-- parser przechodzi po `argv` liniowo,
+- parser przechodzi po `argv` po kolei,
 - opcje wymagające parametru zużywają kolejny token,
 - `-h/--help` kończy program kodem sukcesu,
 - nieznana wartość wejścia skutkuje `ARGUMENTS_ERROR`.
@@ -491,7 +491,7 @@ Mocne strony:
 - jasny podział na odczyt i zapis,
 - ograniczenie rozmiaru etykiety zabezpiecza bufor.
 
-Krótki fragment pokazujący dwuprzebiegowy odczyt i mapowanie identyfikatorów:
+Fragment pokazujący dwuprzebiegowy odczyt i mapowanie identyfikatorów:
 
 ```c
 int load_graph(char path[], Graph **graph_out) {
@@ -1188,8 +1188,6 @@ Sytuacje wyjątkowe:
 - niepoprawne wartości `iterations`, `temperature`, `size`,
 - nieznany algorytm lub format.
 
-Uwaga: fragmenty kodu dla tej funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
-
 == `load_graph(char path[], Graph **graph_out)`
 
 Wejście:
@@ -1218,8 +1216,6 @@ Złożoność:
 - sortowanie: $O(V log V)$,
 - skan 2: $O(E log V)$ przez `bsearch`.
 
-Uwaga: fragmenty kodu dla tej funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
-
 == `save_graph_as_text(Graph *graph, char path[])`
 
 Założenia:
@@ -1233,8 +1229,6 @@ Uwagi:
 - format jest najprostszy do debugowania i ręcznej walidacji,
 - może być większy rozmiarowo od binarnego przy dużych grafach.
 
-Uwaga: fragmenty kodu dla tej funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
-
 == `save_graph_as_binary(Graph *graph, char path[])`
 
 Założenia:
@@ -1246,8 +1240,6 @@ Uwagi integracyjne:
 
 - format jest szybki w odczycie, ale mniej odporny na niezgodności platformowe,
 - w praktyce warto dodać nagłówek wersji formatu.
-
-Uwaga: fragmenty kodu dla tej funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
 
 == `run_fruchterman(...)`
 
@@ -1267,8 +1259,6 @@ Uwagi o jakości wyniku:
 - dla grafów rzadkich przy niskiej temperaturze możliwe "zamrożenie" układów,
 - dla grafów gęstych i dużych wag może występować silne ściskanie klastrów.
 
-Uwaga: fragmenty kodu dla tej funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
-
 == `create_adjacency_list(...)` i `free_adjacency_list(...)`
 
 Założenia tworzenia:
@@ -1280,8 +1270,6 @@ Założenia zwalniania:
 
 - wszystkie elementy list sąsiedztwa oraz tablice pomocnicze są zwalniane,
 - funkcja toleruje `NULL`.
-
-Uwaga: fragmenty kodu dla tych funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
 
 == `run_tutte(...)`
 
@@ -1300,23 +1288,6 @@ Uwagi merytoryczne:
 
 - implementacja nie wyznacza formalnie planarności ani prawdziwej zewnętrznej ściany,
 - przy fallbacku 4 najwyższych stopni uzyskany layout może odbiegać od klasycznego embeddingu Tutte.
-
-Uwaga: fragmenty kodu dla tej funkcji znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
-
-== Funkcje pomocnicze `utils`
-
-`list_contains`, `list_prepend`, `list_free` tworzą minimalny, celowy zestaw narzędzi.
-
-Silne strony:
-
-- prostota i przewidywalność,
-- brak ukrytych efektów ubocznych.
-
-Słabości:
-
-- przy bardzo dużych danych koszt wyszukiwania liniowego w `list_contains` może być istotny.
-
-Uwaga: fragmenty kodu dla funkcji pomocniczych znajdują się wyłącznie w sekcji `Szczegółowy opis kodu`.
 
 = Opis algorytmiczny
 
@@ -1405,7 +1376,6 @@ W przypadku błędu:
 == Potencjalne punkty ryzyka pamięci
 
 - przy bardzo dużych grafach koszt pamięci list sąsiedztwa i tablic tymczasowych może być wysoki,
-- brak limitów na liczbę rekordów pliku może prowadzić do wyczerpania zasobów systemowych.
 
 = Obsługa błędów
 
@@ -1683,12 +1653,6 @@ W bieżącej wersji projektu testy przechodzą poprawnie (`All tests passed!`).
 - Jakość layoutu zależy od parametrów (`iterations`, `temperature`, `size`).
 - Tutte-like embedding zależy od heurystycznego wyboru ramy.
 
-== Ograniczenia implementacyjne
-
-- Brak parsera z "twardą" diagnostyką numerów linii (kod `line_number` jest utrzymywany, ale nie jest eksponowany w komunikatach).
-- Brak wsparcia dla danych binarnych na wejściu (tylko tekst).
-- Brak opcji wymuszenia ziarna RNG w Fruchterman (utrudniona reprodukowalność).
-
 == Ryzyka eksploatacyjne
 
 - Dla bardzo dużych grafów czas i pamięć mogą być nieakceptowalne bez optymalizacji.
@@ -1701,6 +1665,8 @@ Projekt C realizuje wymagany trzon funkcjonalny: odczyt danych grafu, dwa algory
 W tej postaci projekt jest gotowy do przekazania dalej jako silnik obliczeniowy i baza dla kolejnego etapu (warstwa wizualna i interakcyjna).
 
 = Załącznik A: Skrócona referencja API (C)
+
+Zestaw poniżej zawiera wszystkie funkcje publiczne zadeklarowane w nagłówkach modułów (`src/*.h`). Funkcje pomocnicze oznaczone jako `static` w plikach `.c` nie należą do API publicznego.
 
 == graph.h
 
@@ -1734,12 +1700,20 @@ W tej postaci projekt jest gotowy do przekazania dalej jako silnik obliczeniowy 
 == Przykładowy plik wejściowy
 
 ```text
-# Prostokąt z przekątną
-AB 1 2 1.0
-BC 2 3 1.0
-CD 3 4 1.0
-DA 4 1 1.0
-AC 1 3 1.2
+# Graf planarny (8 wierzchołków, 13 krawędzi)
+A1 1 2 1.0
+A2 2 3 1.1
+A3 3 4 1.0
+A4 4 1 1.2
+A5 2 5 0.9
+A6 5 6 1.3
+A7 6 3 1.0
+A8 4 7 1.1
+A9 7 8 0.8
+A10 8 1 1.0
+A11 5 7 1.2
+A12 6 8 1.1
+A13 3 8 0.7
 ```
 
 == Przykładowe uruchomienie
@@ -1755,4 +1729,8 @@ AC 1 3 1.2
 2 1000.000000 0.000000
 3 1000.000000 1000.000000
 4 0.000000 1000.000000
+5 642.115300 338.774200
+6 741.492600 601.335900
+7 328.441700 725.884100
+8 214.902800 411.667500
 ```
